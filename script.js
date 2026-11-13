@@ -44,6 +44,7 @@ const hallRoomsConfig = [
     { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
+// Firebase Real-time Sync
 const studentsRef = ref(db, 'hallStudents');
 onValue(studentsRef, (snapshot) => {
     const data = snapshot.val();
@@ -56,6 +57,7 @@ onValue(studentsRef, (snapshot) => {
     searchStudent();
 });
 
+// Admin Mode Toggle
 window.toggleAdminMode = function() {
     if (!isAdmin) {
         let password = prompt("Enter Admin Password:");
@@ -81,14 +83,14 @@ window.toggleAdminMode = function() {
     }
 };
 
-window.openAddStudentForBed = function(floor, room, bed) {
+function openAddStudentForBed(floor, room, bed) {
     if (!isAdmin) return;
     document.getElementById('add-student-form').reset();
     document.getElementById('st-floor').value = floor;
     document.getElementById('st-room').value = room;
     document.getElementById('st-bed').value = bed;
     document.getElementById('admin-modal').style.display = 'flex';
-};
+}
 
 window.closeAdminPanel = function() {
     document.getElementById('admin-modal').style.display = 'none';
@@ -145,8 +147,8 @@ function addStudentObject(imageUrl) {
         });
 }
 
-window.openEditStudent = function(studentId) {
-    let st = students.find(s => s.id === studentId);
+function openEditStudent(studentId) {
+    let st = students.find(s => String(s.id) === String(studentId));
     if (!st) return;
     
     closeInfoModal();
@@ -163,14 +165,14 @@ window.openEditStudent = function(studentId) {
     document.getElementById('edit-st-bed').value = st.bed;
     
     document.getElementById('edit-modal').style.display = 'flex';
-};
+}
 
 window.updateStudent = function(event) {
     event.preventDefault();
     let originalId = document.getElementById('edit-st-original-id').value;
     let newId = document.getElementById('edit-st-id').value.trim();
     
-    let existingStudent = students.find(s => s.id === originalId);
+    let existingStudent = students.find(s => String(s.id) === String(originalId));
     if (!existingStudent) return;
     
     const updatedStudent = {
@@ -186,7 +188,7 @@ window.updateStudent = function(event) {
         image: existingStudent.image
     };
 
-    if (originalId !== newId) {
+    if (String(originalId) !== String(newId)) {
         remove(ref(db, 'hallStudents/' + originalId));
     }
 
@@ -200,7 +202,7 @@ window.updateStudent = function(event) {
         });
 };
 
-window.removeStudent = function(studentId) {
+function removeStudent(studentId) {
     if (!isAdmin) return;
     if (confirm("Are you sure you want to remove this student from the bed?")) {
         remove(ref(db, 'hallStudents/' + studentId))
@@ -212,8 +214,9 @@ window.removeStudent = function(studentId) {
                 alert("Error: " + error.message);
             });
     }
-};
+}
 
+// Render Rooms & Beds using direct Event Listeners
 function renderRooms() {
     const roomList = document.getElementById('room-list');
     if (!roomList) return;
@@ -222,33 +225,44 @@ function renderRooms() {
     hallRoomsConfig.forEach(roomInfo => {
         let card = document.createElement('div');
         card.className = 'room-card';
+        
+        let title = document.createElement('h3');
+        title.innerHTML = `Room: ${roomInfo.room} <span style="font-size:12px; color: #94a3b8;">(Floor ${roomInfo.floor})</span>`;
+        card.appendChild(title);
+        
+        let bedContainer = document.createElement('div');
+        bedContainer.className = 'bed-container';
+        
         let roomStudents = students.filter(s => String(s.room) === String(roomInfo.room));
-        let bedsHTML = '';
         
         roomInfo.beds.forEach(bedName => {
             let st = roomStudents.find(s => s.bed.toLowerCase().trim() === bedName.toLowerCase().trim());
+            let bedDiv = document.createElement('div');
             
             if (st) {
-                bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${st.id}')">${bedName} (${st.name})</div>`;
+                bedDiv.className = 'bed occupied';
+                bedDiv.innerText = `${bedName} (${st.name})`;
+                bedDiv.addEventListener('click', () => showStudentInfo(st.id));
             } else {
+                bedDiv.className = 'bed empty';
                 if (isAdmin) {
-                    bedsHTML += `<div class="bed empty" onclick="openAddStudentForBed(${roomInfo.floor}, ${roomInfo.room}, '${bedName}')">+ ${bedName} (Empty)</div>`;
+                    bedDiv.innerText = `+ ${bedName} (Empty)`;
+                    bedDiv.addEventListener('click', () => openAddStudentForBed(roomInfo.floor, roomInfo.room, bedName));
                 } else {
-                    bedsHTML += `<div class="bed empty">${bedName} (Empty)</div>`;
+                    bedDiv.innerText = `${bedName} (Empty)`;
                 }
             }
+            bedContainer.appendChild(bedDiv);
         });
         
-        card.innerHTML = `
-            <h3>Room: ${roomInfo.room} <span style="font-size:12px; color: #94a3b8;">(Floor ${roomInfo.floor})</span></h3>
-            <div class="bed-container">${bedsHTML}</div>
-        `;
+        card.appendChild(bedContainer);
         roomList.appendChild(card);
     });
 }
 
-window.showStudentInfo = function(studentId) {
-    let st = students.find(s => s.id === studentId);
+// Show Info Modal
+function showStudentInfo(studentId) {
+    let st = students.find(s => String(s.id) === String(studentId));
     if (!st) return;
     
     document.getElementById('student-details').innerHTML = `
@@ -266,17 +280,25 @@ window.showStudentInfo = function(studentId) {
     imgElement.src = st.image ? st.image : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
     
     const actionsContainer = document.getElementById('admin-actions-container');
+    actionsContainer.innerHTML = '';
+    
     if (isAdmin) {
-        actionsContainer.innerHTML = `
-            <button class="edit-btn" onclick="openEditStudent('${st.id}')">Edit Info</button>
-            <button class="delete-btn" onclick="removeStudent('${st.id}')">Remove Student</button>
-        `;
-    } else {
-        actionsContainer.innerHTML = '';
+        let editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.innerText = 'Edit Info';
+        editBtn.addEventListener('click', () => openEditStudent(st.id));
+        
+        let deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.innerText = 'Remove Student';
+        deleteBtn.addEventListener('click', () => removeStudent(st.id));
+        
+        actionsContainer.appendChild(editBtn);
+        actionsContainer.appendChild(deleteBtn);
     }
     
     document.getElementById('info-modal').style.display = 'flex';
-};
+}
 
 window.searchStudent = function() {
     let searchInput = document.getElementById('search-input');
@@ -289,9 +311,9 @@ window.searchStudent = function() {
     
     let matched = students.filter(s => 
         s.name.toLowerCase().includes(query) ||
-        s.id.toLowerCase().includes(query) ||
+        String(s.id).toLowerCase().includes(query) ||
         s.dept.toLowerCase().includes(query) ||
-        s.phone.includes(query) ||
+        String(s.phone).includes(query) ||
         s.district.toLowerCase().includes(query)
     );
     
