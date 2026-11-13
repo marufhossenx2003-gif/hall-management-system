@@ -1,8 +1,6 @@
-// Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyArSC1l1bqi8SYxbGm8iLIapdDpfXIP5SA",
   authDomain: "hall-management-system-677.firebaseapp.com",
@@ -14,14 +12,12 @@ const firebaseConfig = {
   measurementId: "G-DT0ETMN81N"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let students = []; 
 let isAdmin = false;
 
-// Hall Room & Bed Structure
 const hallRoomsConfig = [
     { room: 201, floor: 2, beds: ['Bed-1', 'Bed-2'] },
     { room: 202, floor: 2, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
@@ -48,7 +44,6 @@ const hallRoomsConfig = [
     { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
-// Real-time Database Data Sync
 const studentsRef = ref(db, 'hallStudents');
 onValue(studentsRef, (snapshot) => {
     const data = snapshot.val();
@@ -61,7 +56,6 @@ onValue(studentsRef, (snapshot) => {
     searchStudent();
 });
 
-// Admin Mode Toggle
 window.toggleAdminMode = function() {
     if (!isAdmin) {
         let password = prompt("Enter Admin Password:");
@@ -100,11 +94,14 @@ window.closeAdminPanel = function() {
     document.getElementById('admin-modal').style.display = 'none';
 };
 
+window.closeEditModal = function() {
+    document.getElementById('edit-modal').style.display = 'none';
+};
+
 window.closeInfoModal = function() {
     document.getElementById('info-modal').style.display = 'none';
 };
 
-// Save Student to Firebase
 window.saveStudent = function(event) {
     event.preventDefault();
     const fileInput = document.getElementById('st-image-file');
@@ -134,7 +131,6 @@ function addStudentObject(imageUrl) {
         floor: document.getElementById('st-floor').value,
         room: document.getElementById('st-room').value,
         bed: document.getElementById('st-bed').value,
-        fb: document.getElementById('st-fb').value.trim(),
         image: imageUrl
     };
     
@@ -149,7 +145,61 @@ function addStudentObject(imageUrl) {
         });
 }
 
-// Remove Student
+window.openEditStudent = function(studentId) {
+    let st = students.find(s => s.id === studentId);
+    if (!st) return;
+    
+    closeInfoModal();
+    
+    document.getElementById('edit-st-original-id').value = st.id;
+    document.getElementById('edit-st-name').value = st.name;
+    document.getElementById('edit-st-id').value = st.id;
+    document.getElementById('edit-st-dept').value = st.dept;
+    document.getElementById('edit-st-phone').value = st.phone;
+    document.getElementById('edit-st-blood').value = st.blood;
+    document.getElementById('edit-st-district').value = st.district;
+    document.getElementById('edit-st-floor').value = st.floor;
+    document.getElementById('edit-st-room').value = st.room;
+    document.getElementById('edit-st-bed').value = st.bed;
+    
+    document.getElementById('edit-modal').style.display = 'flex';
+};
+
+window.updateStudent = function(event) {
+    event.preventDefault();
+    let originalId = document.getElementById('edit-st-original-id').value;
+    let newId = document.getElementById('edit-st-id').value.trim();
+    
+    let existingStudent = students.find(s => s.id === originalId);
+    if (!existingStudent) return;
+    
+    const updatedStudent = {
+        name: document.getElementById('edit-st-name').value,
+        id: newId,
+        dept: document.getElementById('edit-st-dept').value,
+        phone: document.getElementById('edit-st-phone').value,
+        blood: document.getElementById('edit-st-blood').value,
+        district: document.getElementById('edit-st-district').value,
+        floor: document.getElementById('edit-st-floor').value,
+        room: document.getElementById('edit-st-room').value,
+        bed: document.getElementById('edit-st-bed').value,
+        image: existingStudent.image
+    };
+
+    if (originalId !== newId) {
+        remove(ref(db, 'hallStudents/' + originalId));
+    }
+
+    set(ref(db, 'hallStudents/' + newId), updatedStudent)
+        .then(() => {
+            alert("Student Information Updated Successfully!");
+            closeEditModal();
+        })
+        .catch((error) => {
+            alert("Error: " + error.message);
+        });
+};
+
 window.removeStudent = function(studentId) {
     if (!isAdmin) return;
     if (confirm("Are you sure you want to remove this student from the bed?")) {
@@ -164,7 +214,6 @@ window.removeStudent = function(studentId) {
     }
 };
 
-// Rooms & Beds Render (Fixed for both View & Admin mode)
 function renderRooms() {
     const roomList = document.getElementById('room-list');
     if (!roomList) return;
@@ -173,7 +222,6 @@ function renderRooms() {
     hallRoomsConfig.forEach(roomInfo => {
         let card = document.createElement('div');
         card.className = 'room-card';
-        // Match room numbers properly (handling both string and number)
         let roomStudents = students.filter(s => String(s.room) === String(roomInfo.room));
         let bedsHTML = '';
         
@@ -181,10 +229,8 @@ function renderRooms() {
             let st = roomStudents.find(s => s.bed.toLowerCase().trim() === bedName.toLowerCase().trim());
             
             if (st) {
-                // Occupied Bed (Works in both View & Admin mode)
                 bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${st.id}')">${bedName} (${st.name})</div>`;
             } else {
-                // Empty Bed
                 if (isAdmin) {
                     bedsHTML += `<div class="bed empty" onclick="openAddStudentForBed(${roomInfo.floor}, ${roomInfo.room}, '${bedName}')">+ ${bedName} (Empty)</div>`;
                 } else {
@@ -201,15 +247,10 @@ function renderRooms() {
     });
 }
 
-// Student Info Display Modal
 window.showStudentInfo = function(studentId) {
     let st = students.find(s => s.id === studentId);
     if (!st) return;
     
-    let fbHTML = st.fb 
-        ? `<p><strong>Facebook:</strong> <a href="${st.fb}" target="_blank" style="color:#38bdf8; text-decoration:none; font-weight:bold;">FB Profile</a></p>` 
-        : `<p><strong>Facebook:</strong> Not Provided</p>`;
-        
     document.getElementById('student-details').innerHTML = `
         <p><strong>Name:</strong> ${st.name}</p>
         <p><strong>ID:</strong> ${st.id}</p>
@@ -219,23 +260,24 @@ window.showStudentInfo = function(studentId) {
         <p><strong>District:</strong> ${st.district}</p>
         <p><strong>Floor:</strong> ${st.floor}</p>
         <p><strong>Room:</strong> ${st.room} (${st.bed})</p>
-        ${fbHTML}
     `;
     
     let imgElement = document.getElementById('st-profile-pic');
     imgElement.src = st.image ? st.image : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
     
-    const deleteContainer = document.getElementById('admin-delete-container');
+    const actionsContainer = document.getElementById('admin-actions-container');
     if (isAdmin) {
-        deleteContainer.innerHTML = `<button class="delete-btn" onclick="removeStudent('${st.id}')">Remove Student from Bed</button>`;
+        actionsContainer.innerHTML = `
+            <button class="edit-btn" onclick="openEditStudent('${st.id}')">Edit Info</button>
+            <button class="delete-btn" onclick="removeStudent('${st.id}')">Remove Student</button>
+        `;
     } else {
-        deleteContainer.innerHTML = '';
+        actionsContainer.innerHTML = '';
     }
     
     document.getElementById('info-modal').style.display = 'flex';
 };
 
-// Instant Search Logic
 window.searchStudent = function() {
     let searchInput = document.getElementById('search-input');
     if (!searchInput) return;
@@ -259,13 +301,11 @@ window.searchStudent = function() {
     }
     
     matched.forEach(st => {
-        let fbSearchHTML = st.fb ? `<a href="${st.fb}" target="_blank" style="color:#38bdf8;">FB Profile</a>` : '';
         let cardBg = isAdmin ? '#1e293b' : '#e2e8f0';
         resultsDiv.innerHTML += `
             <div style="background:${cardBg}; padding: 10px; margin-top:8px; border-radius:5px;">
                 <strong>${st.name}</strong> (${st.id}) | Dept: ${st.dept} <br>
                 <strong>Floor No:</strong> ${st.floor} | <strong>Room No:</strong> ${st.room} (${st.bed}) | ${st.phone} | ${st.blood} 
-                <br>${fbSearchHTML}
             </div>
         `;
     });
