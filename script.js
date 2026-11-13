@@ -44,7 +44,6 @@ const hallRoomsConfig = [
     { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
-// Firebase Real-time Sync
 const studentsRef = ref(db, 'hallStudents');
 onValue(studentsRef, (snapshot) => {
     const data = snapshot.val();
@@ -57,7 +56,6 @@ onValue(studentsRef, (snapshot) => {
     searchStudent();
 });
 
-// Admin Mode Toggle
 window.toggleAdminMode = function() {
     if (!isAdmin) {
         let password = prompt("Enter Admin Password:");
@@ -216,7 +214,6 @@ function removeStudent(studentId) {
     }
 }
 
-// Render Rooms & Beds using direct Event Listeners
 function renderRooms() {
     const roomList = document.getElementById('room-list');
     if (!roomList) return;
@@ -260,7 +257,6 @@ function renderRooms() {
     });
 }
 
-// Show Info Modal
 function showStudentInfo(studentId) {
     let st = students.find(s => String(s.id) === String(studentId));
     if (!st) return;
@@ -331,4 +327,33 @@ window.searchStudent = function() {
             </div>
         `;
     });
+};
+
+// Print Report Function
+window.printHallReport = function() {
+    window.print();
+};
+
+// Export to CSV Function
+window.exportToCSV = function() {
+    if (students.length === 0) {
+        alert("No student data available to export!");
+        return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Name,ID,Department,Phone,Blood Group,District,Floor,Room,Bed\n";
+    
+    students.forEach(st => {
+        let row = `"${st.name}","${st.id}","${st.dept}","${st.phone}","${st.blood}","${st.district}","${st.floor}","${st.room}","${st.bed}"`;
+        csvContent += row + "\n";
+    });
+    
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "hall_students_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };

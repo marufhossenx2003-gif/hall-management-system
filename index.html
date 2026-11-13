@@ -13,6 +13,12 @@
     </header>
 
     <div class="container">
+        <!-- Print & Export Buttons -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: flex-end;">
+            <button onclick="printHallReport()" style="background: #059669; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">🖨️ Print Report</button>
+            <button onclick="exportToCSV()" style="background: #d97706; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">📥 Export CSV</button>
+        </div>
+
         <section class="search-section">
             <h2>Search Student</h2>
             <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search by Name, ID, Department, Phone or District...">
@@ -93,7 +99,6 @@
                     <img id="st-profile-pic" src="" alt="Student Photo" style="width: 120px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
                 </div>
             </div>
-            <!-- Admin Action Buttons (Edit & Remove) -->
             <div id="admin-actions-container" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;"></div>
         </div>
     </div>
