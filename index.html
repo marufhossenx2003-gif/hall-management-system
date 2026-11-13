@@ -24,7 +24,7 @@
         <section class="room-section">
             <h2>Hall Rooms & Beds</h2>
             <p id="admin-hint" style="display: none; color: #38bdf8; margin-top: 5px; font-size: 14px;">
-                * Admin Mode Active: Click on any <b>Empty Bed</b> to add a student, or click an <b>Occupied Bed</b> to view/remove.
+                * Admin Mode Active: Click on any <b>Empty Bed</b> to add a student, or click an <b>Occupied Bed</b> to view/edit/remove.
             </p>
             <div id="room-list" class="room-grid"></div>
         </section>
@@ -59,6 +59,33 @@
         </div>
     </div>
 
+    <!-- Edit Student Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Student Information</h2>
+            <form id="edit-student-form" onsubmit="updateStudent(event)">
+                <input type="hidden" id="edit-st-original-id">
+                <input type="text" id="edit-st-name" placeholder="Student Name" required>
+                <input type="text" id="edit-st-id" placeholder="Student ID" required>
+                <input type="text" id="edit-st-dept" placeholder="Department" required>
+                <input type="text" id="edit-st-phone" placeholder="Phone Number" required>
+                <input type="text" id="edit-st-blood" placeholder="Blood Group (e.g. A+)" required>
+                <input type="text" id="edit-st-district" placeholder="District" required>
+                
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="edit-st-floor" placeholder="Floor" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
+                    <input type="number" id="edit-st-room" placeholder="Room" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
+                    <input type="text" id="edit-st-bed" placeholder="Bed" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
+                </div>
+
+                <input type="url" id="edit-st-fb" placeholder="Facebook Profile Link">
+                
+                <button type="submit" class="submit-btn" style="background: #0284c7;">Update Student Data</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Info Modal -->
     <div id="info-modal" class="modal">
         <div class="modal-content" style="max-width: 550px;">
@@ -70,7 +97,8 @@
                     <img id="st-profile-pic" src="" alt="Student Photo" style="width: 120px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
                 </div>
             </div>
-            <div id="admin-delete-container" style="margin-top: 15px; text-align: right;"></div>
+            <!-- Admin Action Buttons (Edit & Remove) -->
+            <div id="admin-actions-container" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;"></div>
         </div>
     </div>
 
