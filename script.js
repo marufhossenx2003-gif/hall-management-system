@@ -1,10 +1,27 @@
-// LocalStorage theke data load kora
-let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
-let isAdmin = false; // Admin Mode tracking variable
+// Import Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyArSC1l1bqi8SYxbGm8iLIapdDpfXIP5SA",
+  authDomain: "hall-management-system-677.firebaseapp.com",
+  projectId: "hall-management-system-677",
+  storageBucket: "hall-management-system-677.firebasestorage.app",
+  messagingSenderId: "1093765703596",
+  appId: "1:1093765703596:web:c5c88b5e3b47f53dc4bc09",
+  measurementId: "G-DT0ETMN81N"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let students = []; // Database theke data asbe
+let isAdmin = false;
 
 // Apnar Hall-er Real Room & Bed Structure Data
 const hallRoomsConfig = [
-    // Floor 2
     { room: 201, floor: 2, beds: ['Bed-1', 'Bed-2'] },
     { room: 202, floor: 2, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
     { room: 203, floor: 2, beds: ['Bed-1', 'Bed-2'] },
@@ -18,12 +35,10 @@ const hallRoomsConfig = [
     { room: 211, floor: 2, beds: ['Bed-1', 'Bed-2'] },
     { room: 212, floor: 2, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
     { room: 213, floor: 2, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
-    // Floor 3
     { room: 301, floor: 3, beds: ['Bed-1', 'Bed-2'] },
     { room: 302, floor: 3, beds: ['Bed-1', 'Bed-2'] },
     { room: 303, floor: 3, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
     { room: 304, floor: 3, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
-    // Floor 4
     { room: 401, floor: 4, beds: ['Bed-1', 'Bed-2'] },
     { room: 402, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
     { room: 403, floor: 4, beds: ['Bed-1', 'Bed-2'] },
@@ -32,8 +47,21 @@ const hallRoomsConfig = [
     { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
-// Admin Mode Toggle (Login / Logout)
-function toggleAdminMode() {
+// Real-time Database theke data shobshomoy fetch kora
+const studentsRef = ref(db, 'hallStudents');
+onValue(studentsRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        students = Object.values(data);
+    } else {
+        students = [];
+    }
+    renderRooms();
+    searchStudent();
+});
+
+// Admin Mode Toggle
+window.toggleAdminMode = function() {
     if (!isAdmin) {
         let password = prompt("Enter Admin Password:");
         if (password === "1234") {
@@ -56,30 +84,27 @@ function toggleAdminMode() {
         document.getElementById('admin-hint').style.display = "none";
         renderRooms();
     }
-}
+};
 
-// Specific Bed-e click korle Form Open hobe (Auto-filled)
-function openAddStudentForBed(floor, room, bed) {
-    if (!isAdmin) return; // Viewer mode-e kaj korbe na
-    
+window.openAddStudentForBed = function(floor, room, bed) {
+    if (!isAdmin) return;
     document.getElementById('add-student-form').reset();
     document.getElementById('st-floor').value = floor;
     document.getElementById('st-room').value = room;
     document.getElementById('st-bed').value = bed;
-    
     document.getElementById('admin-modal').style.display = 'flex';
-}
+};
 
-function closeAdminPanel() {
+window.closeAdminPanel = function() {
     document.getElementById('admin-modal').style.display = 'none';
-}
+};
 
-function closeInfoModal() {
+window.closeInfoModal = function() {
     document.getElementById('info-modal').style.display = 'none';
-}
+};
 
-// Student Save Function
-function saveStudent(event) {
+// Firebase-এ Student Save Kora
+window.saveStudent = function(event) {
     event.preventDefault();
     const fileInput = document.getElementById('st-image-file');
     const file = fileInput.files[0];
@@ -88,19 +113,19 @@ function saveStudent(event) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const imageData = e.target.result;
-            addStudentObject(imageData);
+            addStudentObject(e.target.result);
         };
         reader.readAsDataURL(file);
     } else {
         addStudentObject(defaultImage);
     }
-}
+};
 
 function addStudentObject(imageUrl) {
+    const studentId = document.getElementById('st-id').value.trim();
     const newStudent = {
         name: document.getElementById('st-name').value,
-        id: document.getElementById('st-id').value,
+        id: studentId,
         dept: document.getElementById('st-dept').value,
         phone: document.getElementById('st-phone').value,
         blood: document.getElementById('st-blood').value,
@@ -112,30 +137,37 @@ function addStudentObject(imageUrl) {
         image: imageUrl
     };
     
-    students.push(newStudent);
-    localStorage.setItem('hallStudents', JSON.stringify(students));
-    alert("Student Added Successfully!");
-    document.getElementById('add-student-form').reset();
-    closeAdminPanel();
-    renderRooms();
-    searchStudent(); // Search result thakle update korbe
+    // Firebase Database-এ Student ID দিয়ে Save kora
+    set(ref(db, 'hallStudents/' + studentId), newStudent)
+        .then(() => {
+            alert("Student Added Successfully to Cloud Database!");
+            document.getElementById('add-student-form').reset();
+            closeAdminPanel();
+        })
+        .catch((error) => {
+            alert("Error: " + error.message);
+        });
 }
 
-// Student Remove Function (Only for Admin)
-function removeStudent(studentId) {
+// Firebase theke Student Remove Kora
+window.removeStudent = function(studentId) {
     if (!isAdmin) return;
     if (confirm("Are you sure you want to remove this student from the bed?")) {
-        students = students.filter(s => s.id !== studentId);
-        localStorage.setItem('hallStudents', JSON.stringify(students));
-        closeInfoModal();
-        renderRooms();
-        searchStudent();
+        remove(ref(db, 'hallStudents/' + studentId))
+            .then(() => {
+                alert("Student Removed Successfully!");
+                closeInfoModal();
+            })
+            .catch((error) => {
+                alert("Error: " + error.message);
+            });
     }
-}
+};
 
 // Rooms & Beds Render
 function renderRooms() {
     const roomList = document.getElementById('room-list');
+    if (!roomList) return;
     roomList.innerHTML = '';
     
     hallRoomsConfig.forEach(roomInfo => {
@@ -166,7 +198,7 @@ function renderRooms() {
 }
 
 // Student Info Display Modal
-function showStudentInfo(studentId) {
+window.showStudentInfo = function(studentId) {
     let st = students.find(s => s.id === studentId);
     if (!st) return;
     
@@ -189,7 +221,6 @@ function showStudentInfo(studentId) {
     let imgElement = document.getElementById('st-profile-pic');
     imgElement.src = st.image ? st.image : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
     
-    // Admin mode-e thakle Delete button dekhabe
     const deleteContainer = document.getElementById('admin-delete-container');
     if (isAdmin) {
         deleteContainer.innerHTML = `<button class="delete-btn" onclick="removeStudent('${st.id}')">Remove Student from Bed</button>`;
@@ -198,11 +229,13 @@ function showStudentInfo(studentId) {
     }
     
     document.getElementById('info-modal').style.display = 'flex';
-}
+};
 
 // Instant Search Logic
-function searchStudent() {
-    let query = document.getElementById('search-input').value.toLowerCase().trim();
+window.searchStudent = function() {
+    let searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
+    let query = searchInput.value.toLowerCase().trim();
     let resultsDiv = document.getElementById('search-results');
     resultsDiv.innerHTML = '';
     
@@ -222,7 +255,7 @@ function searchStudent() {
     }
     
     matched.forEach(st => {
-        let fbSearchHTML = st.fb ? `<a href="${st.fb}" target="_blank" style="color:#2563eb;">FB Profile</a>` : '';
+        let fbSearchHTML = st.fb ? `<a href="${st.fb}" target="_blank" style="color:#38bdf8;">FB Profile</a>` : '';
         let cardBg = isAdmin ? '#1e293b' : '#e2e8f0';
         resultsDiv.innerHTML += `
             <div style="background:${cardBg}; padding: 10px; margin-top:8px; border-radius:5px;">
@@ -232,7 +265,4 @@ function searchStudent() {
             </div>
         `;
     });
-}
-
-// Initial Load
-renderRooms();
+};
