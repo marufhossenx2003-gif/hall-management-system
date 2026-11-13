@@ -6,6 +6,7 @@ import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/
 const firebaseConfig = {
   apiKey: "AIzaSyArSC1l1bqi8SYxbGm8iLIapdDpfXIP5SA",
   authDomain: "hall-management-system-677.firebaseapp.com",
+  databaseURL: "https://hall-management-system-677-default-rtdb.firebaseio.com",
   projectId: "hall-management-system-677",
   storageBucket: "hall-management-system-677.firebasestorage.app",
   messagingSenderId: "1093765703596",
@@ -17,10 +18,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let students = []; // Database theke data asbe
+let students = []; 
 let isAdmin = false;
 
-// Apnar Hall-er Real Room & Bed Structure Data
+// Hall Room & Bed Structure
 const hallRoomsConfig = [
     { room: 201, floor: 2, beds: ['Bed-1', 'Bed-2'] },
     { room: 202, floor: 2, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
@@ -47,7 +48,7 @@ const hallRoomsConfig = [
     { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
-// Real-time Database theke data shobshomoy fetch kora
+// Real-time Database Data Sync
 const studentsRef = ref(db, 'hallStudents');
 onValue(studentsRef, (snapshot) => {
     const data = snapshot.val();
@@ -103,7 +104,7 @@ window.closeInfoModal = function() {
     document.getElementById('info-modal').style.display = 'none';
 };
 
-// Firebase-এ Student Save Kora
+// Save Student to Firebase
 window.saveStudent = function(event) {
     event.preventDefault();
     const fileInput = document.getElementById('st-image-file');
@@ -137,10 +138,9 @@ function addStudentObject(imageUrl) {
         image: imageUrl
     };
     
-    // Firebase Database-এ Student ID দিয়ে Save kora
     set(ref(db, 'hallStudents/' + studentId), newStudent)
         .then(() => {
-            alert("Student Added Successfully to Cloud Database!");
+            alert("Student Added Successfully!");
             document.getElementById('add-student-form').reset();
             closeAdminPanel();
         })
@@ -149,7 +149,7 @@ function addStudentObject(imageUrl) {
         });
 }
 
-// Firebase theke Student Remove Kora
+// Remove Student
 window.removeStudent = function(studentId) {
     if (!isAdmin) return;
     if (confirm("Are you sure you want to remove this student from the bed?")) {
@@ -164,7 +164,7 @@ window.removeStudent = function(studentId) {
     }
 };
 
-// Rooms & Beds Render
+// Rooms & Beds Render (Fixed for both View & Admin mode)
 function renderRooms() {
     const roomList = document.getElementById('room-list');
     if (!roomList) return;
@@ -173,14 +173,18 @@ function renderRooms() {
     hallRoomsConfig.forEach(roomInfo => {
         let card = document.createElement('div');
         card.className = 'room-card';
-        let roomStudents = students.filter(s => s.room == roomInfo.room);
+        // Match room numbers properly (handling both string and number)
+        let roomStudents = students.filter(s => String(s.room) === String(roomInfo.room));
         let bedsHTML = '';
         
         roomInfo.beds.forEach(bedName => {
             let st = roomStudents.find(s => s.bed.toLowerCase().trim() === bedName.toLowerCase().trim());
+            
             if (st) {
-                bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${st.id}')">${bedName} (Occupied)</div>`;
+                // Occupied Bed (Works in both View & Admin mode)
+                bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${st.id}')">${bedName} (${st.name})</div>`;
             } else {
+                // Empty Bed
                 if (isAdmin) {
                     bedsHTML += `<div class="bed empty" onclick="openAddStudentForBed(${roomInfo.floor}, ${roomInfo.room}, '${bedName}')">+ ${bedName} (Empty)</div>`;
                 } else {
