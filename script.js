@@ -102,18 +102,45 @@ window.closeInfoModal = function() {
     document.getElementById('info-modal').style.display = 'none';
 };
 
-window.saveStudent = function(event) {
+// Cloudinary Configuration
+const CLOUD_NAME = "gf1ldxre"; // আপনার Cloudinary Cloud Name এখানে বসান
+const UPLOAD_PRESET = "hall_preset"; // আপনার তৈরি করা Unsigned Preset Name বসান
+
+window.saveStudent = async function(event) {
     event.preventDefault();
     const fileInput = document.getElementById('st-image-file');
     const file = fileInput.files[0];
     const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    const submitBtn = event.target.querySelector('button[type="submit"]');
     
     if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            addStudentObject(e.target.result);
-        };
-        reader.readAsDataURL(file);
+        submitBtn.innerText = "Uploading Photo...";
+        submitBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', UPLOAD_PRESET);
+
+        try {
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.secure_url) {
+                addStudentObject(data.secure_url);
+            } else {
+                alert("Image upload failed! Saving with default photo.");
+                addStudentObject(defaultImage);
+            }
+        } catch (error) {
+            alert("Upload Error: " + error.message);
+            addStudentObject(defaultImage);
+        } finally {
+            submitBtn.innerText = "Save Student Data";
+            submitBtn.disabled = false;
+        }
     } else {
         addStudentObject(defaultImage);
     }
