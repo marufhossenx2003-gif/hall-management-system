@@ -1,11 +1,12 @@
 if (sessionStorage.getItem('hallAdminAuth') !== 'true') {
-  const pass = prompt("Provost Admin Panel-e dhukte Password Din:");
-  if (pass === "12345") {
-    sessionStorage.setItem('hallAdminAuth', 'true');
-  } else {
-    alert("Access Denied!");
-    window.location.href = 'index.html';
-  }
+  // Replace native prompt with custom modal
+  showPrompt('Provost Admin Panel-e dhukte Password Din:', '', function(pass) {
+    if (pass === '12345') {
+      sessionStorage.setItem('hallAdminAuth', 'true');
+    } else if (pass !== null) {
+      showAlert('Access Denied!', function() { window.location.href = 'index.html'; });
+    }
+  });
 }
 
 let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
@@ -77,13 +78,15 @@ function goToMealManagerPage() {
     window.location.href = 'meal-manager.html';
     return;
   }
-  const pass = prompt("Meal Manager Page-e dhukte Password Din:");
-  if (pass === "12345") {
-    sessionStorage.setItem('hallMealManagerAuth', 'true');
-    window.location.href = 'meal-manager.html';
-  } else if (pass !== null) {
-    alert("Wrong Password!");
-  }
+  // Replace native prompt
+  showPrompt('Meal Manager Page-e dhukte Password Din:', '', function(pass) {
+    if (pass === '12345') {
+      sessionStorage.setItem('hallMealManagerAuth', 'true');
+      window.location.href = 'meal-manager.html';
+    } else if (pass !== null) {
+      showAlert('Wrong Password!');
+    }
+  });
 }
 
 function logoutAdmin() {
@@ -186,42 +189,45 @@ function persistStudent(imageData) {
     saveHallFeeCloud(seatKey, hallFeeRecords[seatKey]);
   }
 
-  alert(`Boarder successfully assigned to Floor ${selectedTarget.floor}, Room ${selectedTarget.room}, ${selectedTarget.bed}.`);
-  existingImageData = imageData;
-  const vacateBtn = document.getElementById('vacate-btn');
-  if (vacateBtn) vacateBtn.style.display = 'inline-flex';
-  renderAdminRooms();
-  renderHallFeeList();
+  showAlert(`Boarder successfully assigned to Floor ${selectedTarget.floor}, Room ${selectedTarget.room}, ${selectedTarget.bed}.`, function(){
+    existingImageData = imageData;
+    const vacateBtn = document.getElementById('vacate-btn');
+    if (vacateBtn) vacateBtn.style.display = 'inline-flex';
+    renderAdminRooms();
+    renderHallFeeList();
+  });
 }
 
 function vacateSelectedBed() {
-  if (!confirm(`Are you sure you want to vacate Room ${selectedTarget.room}, ${selectedTarget.bed}?`)) return;
-  const existing = findStudentAtBed(selectedTarget.room, selectedTarget.bed);
-  if (existing) {
-    if (typeof deleteHallStudentCloud === "function") {
-      deleteHallStudentCloud(existing);
+  showConfirm(`Are you sure you want to vacate Room ${selectedTarget.room}, ${selectedTarget.bed}?`, function(confirmed) {
+    if (!confirmed) return;
+    const existing = findStudentAtBed(selectedTarget.room, selectedTarget.bed);
+    if (existing) {
+      if (typeof deleteHallStudentCloud === "function") {
+        deleteHallStudentCloud(existing);
+      }
+      delete hallFeeRecords[getSeatKey(existing)];
+      localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
     }
-    delete hallFeeRecords[getSeatKey(existing)];
-    localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
-  }
 
-  students = students.filter(
-    s => !(String(s.room) === String(selectedTarget.room) && String(s.bed).toLowerCase().trim() === selectedTarget.bed.toLowerCase().trim())
-  );
-  localStorage.setItem('hallStudents', JSON.stringify(students));
-  document.getElementById('admin-student-form').reset();
-  existingImageData = '';
-  const vacateBtn = document.getElementById('vacate-btn');
-  if (vacateBtn) vacateBtn.style.display = 'none';
-  alert("Seat vacated successfully.");
-  renderAdminRooms();
-  renderHallFeeList();
+    students = students.filter(
+      s => !(String(s.room) === String(selectedTarget.room) && String(s.bed).toLowerCase().trim() === selectedTarget.bed.toLowerCase().trim())
+    );
+    localStorage.setItem('hallStudents', JSON.stringify(students));
+    document.getElementById('admin-student-form').reset();
+    existingImageData = '';
+    const vacateBtn = document.getElementById('vacate-btn');
+    if (vacateBtn) vacateBtn.style.display = 'none';
+    showAlert('Seat vacated successfully.');
+    renderAdminRooms();
+    renderHallFeeList();
+  });
 }
 
 function updateHallFeeTarget() {
   const val = Number(document.getElementById('hall-fee-target-input').value);
   if (isNaN(val) || val < 0) {
-    alert("Please enter a valid target amount.");
+    showAlert('Please enter a valid target amount.');
     return;
   }
   hallFeeTarget = val;
@@ -234,19 +240,20 @@ function updateHallFeeTarget() {
 }
 
 function addHallFeePayment(seatKey) {
-  const amtStr = prompt("Enter payment collection amount (BDT):");
-  if (amtStr === null || amtStr.trim() === '') return;
-  const amt = Number(amtStr);
-  if (isNaN(amt) || amt <= 0) {
-    alert("Please enter a valid positive amount.");
-    return;
-  }
-  hallFeeRecords[seatKey] = (Number(hallFeeRecords[seatKey]) || 0) + amt;
-  localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
-  if (typeof saveHallFeeCloud === "function") {
-    saveHallFeeCloud(seatKey, hallFeeRecords[seatKey]);
-  }
-  renderHallFeeList();
+  showPrompt('Enter payment collection amount (BDT):', '', function(amtStr) {
+    if (amtStr === null || amtStr.trim() === '') return;
+    const amt = Number(amtStr);
+    if (isNaN(amt) || amt <= 0) {
+      showAlert('Please enter a valid positive amount.');
+      return;
+    }
+    hallFeeRecords[seatKey] = (Number(hallFeeRecords[seatKey]) || 0) + amt;
+    localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+    if (typeof saveHallFeeCloud === "function") {
+      saveHallFeeCloud(seatKey, hallFeeRecords[seatKey]);
+    }
+    renderHallFeeList();
+  });
 }
 
 function renderHallFeeList() {
@@ -313,8 +320,7 @@ function renderAdminRooms() {
       let buttonsHTML = `
         <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <i data-lucide="door-open" style="width:14px;height:14px;color:var(--primary);"></i> Room ${roomObj.room}
-        </div>
-      `;
+        </div>`;
 
       roomObj.beds.forEach(bedName => {
         const occ = findStudentAtBed(roomObj.room, bedName);
