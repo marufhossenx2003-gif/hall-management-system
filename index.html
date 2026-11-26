@@ -1,108 +1,72 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrSTU Boys Hostel</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hall Management System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>PrSTU Boys Hostel <span id="admin-badge" style="display: none;">(Admin Mode)</span></h1>
-        <button id="admin-btn" onclick="toggleAdminMode()">Admin Login</button>
-    </header>
 
-    <div class="container">
-        <!-- Print & Export Buttons -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: flex-end;">
-            <button onclick="printHallReport()" style="background: #059669; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">🖨️ Print Report</button>
-            <button onclick="exportToCSV()" style="background: #d97706; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">📥 Export CSV</button>
-        </div>
-
-        <section class="search-section">
-            <h2>Search Student</h2>
-            <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search by Name, ID, Department, Phone or District...">
-            <div id="search-results"></div>
-        </section>
-        
-        <hr>
-        
-        <section class="room-section">
-            <h2>Hall Rooms & Beds</h2>
-            <p id="admin-hint" style="display: none; color: #38bdf8; margin-top: 5px; font-size: 14px;">
-                * Admin Mode Active: Click on any <b>Empty Bed</b> to add a student, or click an <b>Occupied Bed</b> to view/edit/remove.
-            </p>
-            <div id="room-list" class="room-grid"></div>
-        </section>
+  <!-- Left Slide-Out Navigation Drawer -->
+  <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+  <aside id="left-drawer" class="left-drawer">
+    <div class="drawer-header">
+      <h3>🧭 Navigation</h3>
+      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
     </div>
+    <nav class="drawer-links">
+      <a href="index.html" class="active">🏠 Rooms & Beds</a>
+      <a href="meal.html">🍽️ Meal System</a>
+      <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+    </nav>
+  </aside>
 
-    <!-- Add Student Modal -->
-    <div id="admin-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeAdminPanel()">&times;</span>
-            <h2>Add Student to Seat</h2>
-            <form id="add-student-form" onsubmit="saveStudent(event)">
-                <input type="text" id="st-name" placeholder="Student Name" required>
-                <input type="text" id="st-id" placeholder="Student ID" required>
-                <input type="text" id="st-dept" placeholder="Department" required>
-                <input type="text" id="st-phone" placeholder="Phone Number" required>
-                <input type="text" id="st-blood" placeholder="Blood Group (e.g. A+)" required>
-                <input type="text" id="st-district" placeholder="District" required>
-                
-                <div style="display: flex; gap: 8px;">
-                    <input type="number" id="st-floor" placeholder="Floor" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                    <input type="number" id="st-room" placeholder="Room" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                    <input type="text" id="st-bed" placeholder="Bed" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                </div>
-                
-                <label style="font-size: 13px; font-weight: bold; margin-top: 8px; display: block; text-align: left;">Upload Student Photo:</label>
-                <input type="file" id="st-image-file" accept="image/*">
-                
-                <button type="submit" class="submit-btn">Save Student Data</button>
-            </form>
-        </div>
+  <!-- Header Section -->
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
+      <h1>🏛️ Hall Management System</h1>
     </div>
+    <button id="admin-btn" onclick="goToAdminPage()">Admin Panel 🔒</button>
+  </header>
 
-    <!-- Edit Student Modal -->
-    <div id="edit-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeEditModal()">&times;</span>
-            <h2>Edit Student Information</h2>
-            <form id="edit-student-form" onsubmit="updateStudent(event)">
-                <input type="hidden" id="edit-st-original-id">
-                <input type="text" id="edit-st-name" placeholder="Student Name" required>
-                <input type="text" id="edit-st-id" placeholder="Student ID" required>
-                <input type="text" id="edit-st-dept" placeholder="Department" required>
-                <input type="text" id="edit-st-phone" placeholder="Phone Number" required>
-                <input type="text" id="edit-st-blood" placeholder="Blood Group (e.g. A+)" required>
-                <input type="text" id="edit-st-district" placeholder="District" required>
-                
-                <div style="display: flex; gap: 8px;">
-                    <input type="number" id="edit-st-floor" placeholder="Floor" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                    <input type="number" id="edit-st-room" placeholder="Room" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                    <input type="text" id="edit-st-bed" placeholder="Bed" readonly required style="background: #e2e8f0; color: #333; cursor: not-allowed;">
-                </div>
-                
-                <button type="submit" class="submit-btn" style="background: #0284c7; margin-top: 15px;">Update Student Data</button>
-            </form>
+  <div class="container">
+
+    <!-- Search Section (User Panel) -->
+    <section class="search-section">
+      <h2>🔍 Search Student</h2>
+      <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search by Name, ID, Department, Phone or District...">
+      <div id="search-results"></div>
+    </section>
+
+    <hr>
+
+    <!-- Room List & Visual Bed Layout Section -->
+    <section class="room-section">
+      <h2>🏢 Hall Rooms & Beds</h2>
+      <div id="room-list" class="room-grid"></div>
+    </section>
+
+  </div>
+
+  <!-- Student Info Modal -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+      <span class="close-btn" onclick="closeInfoModal()">&times;</span>
+      <h2>👤 Student Information</h2>
+
+      <div id="student-details-container" style="display: flex; gap: 20px; align-items: center; margin-top: 15px; text-align: left;">
+        <div id="student-details" style="flex: 1;"></div>
+        <div id="student-image-box" style="width: 130px; text-align: center;">
+          <img id="st-profile-pic" src="" alt="Student Photo" style="width: 120px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
         </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Info Modal -->
-    <div id="info-modal" class="modal">
-        <div class="modal-content" style="max-width: 550px;">
-            <span class="close-btn" onclick="closeInfoModal()">&times;</span>
-            <h2>Student Information</h2>
-            <div id="student-details-container" style="display: flex; gap: 20px; align-items: center; margin-top: 15px; text-align: left;">
-                <div id="student-details" style="flex: 1;"></div>
-                <div id="student-image-box" style="width: 130px; text-align: center;">
-                    <img id="st-profile-pic" src="" alt="Student Photo" style="width: 120px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
-                </div>
-            </div>
-            <div id="admin-actions-container" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;"></div>
-        </div>
-    </div>
-
-    <script src="script.js" type="module"></script>
+  <script src="script.js"></script>
 </body>
 </html>

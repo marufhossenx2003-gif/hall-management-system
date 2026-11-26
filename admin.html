@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Hall Management System</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      margin-top: 20px;
+      align-items: start;
+    }
+    @media (max-width: 850px) {
+      .admin-layout { grid-template-columns: 1fr; }
+    }
+    .panel-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+    .floor-group { margin-top: 16px; }
+    .floor-title {
+      background: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+    .admin-room-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+    }
+    .admin-room-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      background: #f8fafc;
+    }
+    .admin-room-card h4 { margin-bottom: 8px; font-size: 15px; }
+    .bed-select-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 7px 10px;
+      margin-top: 6px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .bed-select-btn.empty { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
+    .bed-select-btn.occupied { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+    .bed-select-btn.selected { outline: 3px solid #2563eb; }
+    .selected-target {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .btn-vacate {
+      width: 100%;
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 9px;
+      border-radius: 5px;
+      margin-top: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .logout-btn {
+      background: #475569;
+      color: white;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Slide-Out Navigation Drawer -->
+  <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+  <aside id="left-drawer" class="left-drawer">
+    <div class="drawer-header">
+      <h3>🧭 Navigation</h3>
+      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+    </div>
+    <nav class="drawer-links">
+      <a href="index.html">🏠 Rooms & Beds</a>
+      <a href="meal.html">🍽️ Meal System</a>
+      <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="admin.html" class="active">⚙️ Admin Panel</a>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+    </nav>
+  </aside>
+
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
+      <h1>⚙️ Admin Panel</h1>
+    </div>
+    <button class="logout-btn" onclick="logoutAdmin()">Lock Admin 🔒</button>
+  </header>
+
+  <div class="container">
+    <div class="admin-layout">
+
+      <div class="panel-box">
+        <h2>🏢 Select Floor, Room & Bed</h2>
+        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+          Jekono bed-e click korle dan paser form-e oi Floor, Room ar Bed automatic select hobe.
+        </p>
+        <div id="admin-floor-room-list"></div>
+      </div>
+
+      <div class="panel-box">
+        <h2>📝 Student Information Entry</h2>
+        <div id="selected-bed-banner" class="selected-target">
+          Selected: <strong>Floor 2 | Room 201 | Bed-1</strong>
+        </div>
+
+        <form id="admin-student-form" onsubmit="saveBedStudent(event)">
+          <input type="text" id="st-name" placeholder="Student Name" required>
+          <input type="text" id="st-id" placeholder="Student ID" required>
+          <input type="text" id="st-dept" placeholder="Department" required>
+          <input type="text" id="st-phone" placeholder="Phone Number" required>
+          <input type="text" id="st-blood" placeholder="Blood Group (e.g. A+)" required>
+          <input type="text" id="st-district" placeholder="District" required>
+
+          <label style="font-size: 13px; font-weight: bold; margin-top: 6px; display: block;">
+            Student Photo (Optional):
+          </label>
+          <input type="file" id="st-image-file" accept="image/*">
+
+          <button type="submit" class="submit-btn">Save Student to Bed</button>
+        </form>
+
+        <button type="button" id="vacate-btn" class="btn-vacate" style="display: none;" onclick="vacateSelectedBed()">
+          Remove Student / Vacate Bed
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
