@@ -14,14 +14,14 @@
       background: white;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       margin-bottom: 20px;
     }
     .meal-table-wrap {
       background: white;
       border-radius: 8px;
       padding: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       overflow-x: auto;
       margin-bottom: 24px;
     }
@@ -95,8 +95,9 @@
       margin-top: 12px;
       align-items: center;
     }
-    .inline-form input {
-      padding: 9px;
+    .inline-form input,
+    .inline-form select {
+      padding: 8px 10px;
       border: 1px solid #cbd5e1;
       border-radius: 5px;
       font-size: 14px;
@@ -105,7 +106,6 @@
 </head>
 <body>
 
-  <!-- Left Slide-Out Navigation Drawer -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
@@ -116,6 +116,7 @@
       <a href="index.html">🏠 Rooms & Beds</a>
       <a href="meal.html">🍽️ Meal System</a>
       <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="meal-graph.html">📈 Meal Graph</a>
       <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
       <a href="meal-manager.html" class="active">👨‍🍳 Meal Manager</a>
     </nav>
@@ -124,33 +125,69 @@
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>👨‍🍳 Meal Manager</h1>
+      <h1>👨‍🍳 Meal Manager (Student Access)</h1>
     </div>
     <button class="logout-btn" onclick="logoutMealManager()">Lock Manager 🔒</button>
   </header>
 
   <div class="container">
 
+    <!-- Dynamic Rate & Schedule Control -->
     <div class="meal-controls">
       <div>
-        <strong>Meal Rate:</strong> ৳<span id="current-rate-display">60</span> / meal
+        <strong>Dynamic Meal Rate (Cost / Meals):</strong> ৳<span id="current-rate-display">0.00</span> / meal
       </div>
-      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-        <input type="number" id="meal-rate-input" placeholder="New Rate" style="width: 110px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
-        <button class="btn-sm btn-toggle" onclick="updateMealRate()">Save Rate</button>
-        <button class="btn-sm btn-plus" onclick="addAllActiveMeals()">+1 All ON Meals</button>
+      <div>
+        <strong>Total Cost:</strong> ৳<span id="summary-total-cost">0</span> |
+        <strong>Total Meals (incl. Churi):</strong> <span id="summary-total-meals">0</span>
       </div>
-      <div style="flex: 1; min-width: 220px;">
-        <input type="text" id="meal-search" onkeyup="renderManagerTable()" placeholder="Search student by Name, ID or Room..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+      <div style="margin-left:auto;">
+        <button type="button" class="btn-sm btn-plus" onclick="addAllActiveMeals()">+1 All ON Meals (Today)</button>
       </div>
     </div>
 
-    <!-- Add External / Non-Seat Meal Student -->
+    <!-- Assign Star Meal Manager + Month Start/Close Dates -->
+    <div class="meal-table-wrap">
+      <h2>⭐ Current Meal Manager & Meal Start/Close Schedule</h2>
+      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+        Hall-er je student meal manager hisabe kaj korben take select korun (tar name-er pashe ⭐ show korbe) ebong month-er jekono date theke meal start/close set korun.
+      </p>
+
+      <div class="inline-form">
+        <label style="font-size:13px; font-weight:bold;">Meal Manager Student:</label>
+        <select id="manager-student-select" style="min-width: 220px;"></select>
+        <button type="button" class="btn-sm btn-toggle" onclick="saveMealManagerStudent()">Set ⭐ Manager</button>
+      </div>
+
+      <div class="inline-form" style="margin-top: 14px;">
+        <label style="font-size:13px; font-weight:bold;">Meal Start Date:</label>
+        <input type="date" id="meal-start-date">
+        <label style="font-size:13px; font-weight:bold;">Meal Close Date:</label>
+        <input type="date" id="meal-close-date">
+        <button type="button" class="btn-sm btn-plus" onclick="setMealWindowState(true)">Start / Open Meal</button>
+        <button type="button" class="btn-sm btn-minus" onclick="setMealWindowState(false)">Close Meal</button>
+        <span style="font-size:13px; margin-left:6px;">Current State: <strong id="manager-meal-state">Open</strong></span>
+      </div>
+    </div>
+
+    <!-- Churi Meal (Stolen Meal) Counter -->
+    <div class="meal-table-wrap">
+      <h2>🕵️ Churi Meal (Stolen Meals Today / Total)</h2>
+      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+        Ajke koyta meal churi hoyechhe seta ekhane update korun — etaw <strong>Total Meal</strong>-e count hobe ebong meal rate-e effect korbe.
+      </p>
+      <div class="inline-form">
+        <span style="font-size:15px;"><strong>Total Churi Meals:</strong> <span id="stolen-meals-count" style="color:#dc2626; font-weight:bold;">0</span></span>
+        <button type="button" class="btn-sm btn-plus" onclick="changeStolenMeals(1)">+1 Churi Meal</button>
+        <button type="button" class="btn-sm btn-minus" onclick="changeStolenMeals(-1)">-1</button>
+        <input type="number" id="stolen-meals-set" placeholder="Set exact" min="0" style="width:110px;">
+        <button type="button" class="btn-sm btn-toggle" onclick="setStolenMealsDirect()">Set Count</button>
+      </div>
+    </div>
+
+    <!-- Add External Meal Student -->
     <div class="meal-table-wrap">
       <h2>➕ Add External Meal Student (No Hall Seat)</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Hall-er baire-r jara shudhu meal chalay (hall-e seat nai) tader nam ekhane add korun.
-      </p>
       <form class="inline-form" onsubmit="addExternalMealStudent(event)">
         <input type="text" id="ext-st-name" placeholder="Student Name *" style="flex: 1; min-width: 180px;" required>
         <input type="text" id="ext-st-id" placeholder="ID (Optional)" style="width: 150px;">
@@ -159,12 +196,12 @@
       </form>
     </div>
 
-    <!-- Section 1: Manage Student Meals & Balance -->
+    <!-- Manage Student Meals & Balance -->
     <div class="meal-table-wrap">
       <h2>🛠️ Manage Student Meals & Balance</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Active ON students: <strong id="active-on-count">0</strong> | Total Meals: <strong id="total-meals-count">0</strong>
-      </p>
+      <div style="margin-top: 8px; max-width: 340px;">
+        <input type="text" id="meal-search" onkeyup="renderManagerTable()" placeholder="Search student by Name, ID or Room..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+      </div>
       <table>
         <thead>
           <tr>
@@ -172,7 +209,7 @@
             <th>ID & Seat / Type</th>
             <th>Meal Status</th>
             <th>Total Meals</th>
-            <th>Deposit / Balance</th>
+            <th>Balance</th>
             <th>Manager Actions</th>
           </tr>
         </thead>
@@ -180,11 +217,11 @@
       </table>
     </div>
 
-    <!-- Section 2: Daily Meal Bazar / Total Cost Manager -->
+    <!-- Daily Bazar / Cost Entry -->
     <div class="meal-table-wrap">
       <h2>🧾 Daily Meal Bazar / Cost Entry</h2>
       <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Ekhane daily khoroch (e.g. Rickshaw vara = 60, Chal = 2000, Murgi = 4000) add korle shob student <strong>Meal Total Cost</strong> page-e dekhte parbe.
+        Cost add korle <strong>Total Cost / Total Meals</strong> hisabe meal rate automatic barbe.
       </p>
 
       <form class="inline-form" onsubmit="addBazarCost(event)">

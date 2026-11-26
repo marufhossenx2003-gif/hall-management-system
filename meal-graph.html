@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Graph (Meal Number - Date) - Hall Management System</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .graph-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      margin-top: 20px;
+    }
+    .canvas-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .date-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+    .date-summary-table th,
+    .date-summary-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      font-size: 14px;
+    }
+    .date-summary-table th {
+      background: #1e293b;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+  <aside id="left-drawer" class="left-drawer">
+    <div class="drawer-header">
+      <h3>🧭 Navigation</h3>
+      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+    </div>
+    <nav class="drawer-links">
+      <a href="index.html">🏠 Rooms & Beds</a>
+      <a href="meal.html">🍽️ Meal System</a>
+      <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="meal-graph.html" class="active">📈 Meal Graph</a>
+      <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+    </nav>
+  </aside>
+
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
+      <h1>📈 Meal Graph (Meal Number - Date)</h1>
+    </div>
+    <button id="admin-btn" onclick="goToMealManagerPage()">Meal Manager 🔒</button>
+  </header>
+
+  <div class="container">
+    <div class="graph-card">
+      <h2>📊 Datewise Meal Count Graph</h2>
+      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+        X-axis: <strong>Date</strong> | Y-axis: <strong>Meal Number</strong> (Meal add/update korle date-wise graph automatic update hobe).
+      </p>
+
+      <div class="canvas-wrap">
+        <canvas id="meal-date-canvas" width="900" height="380"></canvas>
+      </div>
+
+      <table class="date-summary-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Meal Number (Count)</th>
+          </tr>
+        </thead>
+        <tbody id="date-meal-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="meal-graph.js"></script>
+</body>
+</html>

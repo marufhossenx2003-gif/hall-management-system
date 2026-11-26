@@ -16,12 +16,12 @@ function goToAdminPage() {
     window.location.href = 'admin.html';
     return;
   }
-  const pass = prompt("Admin Panel Page-e dhukte Password Din:");
+  const pass = prompt("Provost Admin Panel-e dhukte Password Din:");
   if (pass === "12345") {
     sessionStorage.setItem('hallAdminAuth', 'true');
     window.location.href = 'admin.html';
   } else if (pass !== null) {
-    alert("Wrong Password!");
+    alert("Wrong Password! Access Denied.");
   }
 }
 
@@ -36,7 +36,7 @@ function goToMealManagerPage() {
     sessionStorage.setItem('hallMealManagerAuth', 'true');
     window.location.href = 'meal-manager.html';
   } else if (pass !== null) {
-    alert("Wrong Password!");
+    alert("Wrong Password! Access Denied.");
   }
 }
 

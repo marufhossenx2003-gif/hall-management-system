@@ -1,4 +1,5 @@
 let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
+let mealManagerInfo = JSON.parse(localStorage.getItem('hallMealManagerInfo')) || null;
 
 const hallRoomsConfig = [
   // Floor 2
@@ -27,9 +28,24 @@ const hallRoomsConfig = [
   { room: 402, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
   { room: 403, floor: 4, beds: ['Bed-1', 'Bed-2'] },
   { room: 404, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
-  { room: 405, floor: 4, beds: ['Bed-1', 'Bed-2'] },
-  { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
+  { room: 405, floor: 4, beds: ['Bed-1'] },
+  { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
+  { room: 407, floor: 4, beds: ['Bed-1'] }
 ];
+
+function isCurrentMealManager(st) {
+  if (!mealManagerInfo) return false;
+  return (
+    String(st.room) === String(mealManagerInfo.room) &&
+    String(st.bed).toLowerCase().trim() === String(mealManagerInfo.bed).toLowerCase().trim()
+  );
+}
+
+function formatNameWithStar(st) {
+  return isCurrentMealManager(st)
+    ? `${st.name} <span class="star-badge" title="Current Meal Manager">⭐</span>`
+    : st.name;
+}
 
 function openNavDrawer() {
   document.getElementById('left-drawer').classList.add('open');
@@ -47,7 +63,7 @@ function goToAdminPage() {
     window.location.href = 'admin.html';
     return;
   }
-  const password = prompt("Admin Panel Page-e dhukte Password Din:");
+  const password = prompt("Provost Admin Panel-e dhukte Password Din:");
   if (password === "12345") {
     sessionStorage.setItem('hallAdminAuth', 'true');
     window.location.href = 'admin.html';
@@ -89,7 +105,8 @@ function renderRooms() {
     roomInfo.beds.forEach(bedName => {
       let st = roomStudents.find(s => String(s.bed).toLowerCase().trim() === bedName.toLowerCase().trim());
       if (st) {
-        bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${roomInfo.room}', '${bedName}')">${bedName} (Occupied)</div>`;
+        const starText = isCurrentMealManager(st) ? ' ⭐' : '';
+        bedsHTML += `<div class="bed occupied" onclick="showStudentInfo('${roomInfo.room}', '${bedName}')">${bedName} (${st.name}${starText})</div>`;
       } else {
         bedsHTML += `<div class="bed empty">${bedName} (Empty)</div>`;
       }
@@ -109,8 +126,13 @@ function showStudentInfo(roomNo, bedName) {
   );
   if (!st) return;
 
+  const managerNote = isCurrentMealManager(st)
+    ? `<p><strong>Role:</strong> Meal Manager ⭐</p>`
+    : '';
+
   document.getElementById('student-details').innerHTML = `
-    <p><strong>Name:</strong> ${st.name}</p>
+    <p><strong>Name:</strong> ${formatNameWithStar(st)}</p>
+    ${managerNote}
     <p><strong>ID:</strong> ${st.id}</p>
     <p><strong>Department:</strong> ${st.dept}</p>
     <p><strong>Phone:</strong> ${st.phone}</p>
@@ -149,7 +171,7 @@ function searchStudent() {
   matched.forEach(st => {
     resultsDiv.innerHTML += `
       <div style="background:#e2e8f0; padding:10px; margin-top:8px; border-radius:5px;">
-        <strong>${st.name}</strong> (${st.id}) - Dept: ${st.dept} <br>
+        <strong>${formatNameWithStar(st)}</strong> (${st.id}) - Dept: ${st.dept} <br>
         📍 <strong>Floor No:</strong> ${st.floor} | 🚪 <strong>Room No:</strong> ${st.room} (${st.bed}) | 📱 ${st.phone} | 🩸 ${st.blood} | 🏙️ ${st.district}
       </div>
     `;

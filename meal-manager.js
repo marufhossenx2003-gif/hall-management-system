@@ -11,8 +11,25 @@ if (sessionStorage.getItem('hallMealManagerAuth') !== 'true') {
 let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
 let externalBoarders = JSON.parse(localStorage.getItem('hallExternalMealStudents')) || [];
 let mealRecords = JSON.parse(localStorage.getItem('hallMealRecords')) || {};
-let mealRate = Number(localStorage.getItem('hallMealRate')) || 60;
 let bazarCosts = JSON.parse(localStorage.getItem('hallMealBazarCosts')) || [];
+let stolenMeals = Number(localStorage.getItem('hallStolenMeals')) || 0;
+let dailyMealLog = JSON.parse(localStorage.getItem('hallDailyMealLog')) || {}; // { 'YYYY-MM-DD': number }
+let mealSchedule = JSON.parse(localStorage.getItem('hallMealSchedule')) || {
+  isOpen: true,
+  startDate: '',
+  closeDate: ''
+};
+let mealManagerInfo = JSON.parse(localStorage.getItem('hallMealManagerInfo')) || null;
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addToDailyLog(dateStr, deltaMeals) {
+  const d = dateStr || todayISO();
+  dailyMealLog[d] = Math.max(0, (Number(dailyMealLog[d]) || 0) + deltaMeals);
+  localStorage.setItem('hallDailyMealLog', JSON.stringify(dailyMealLog));
+}
 
 function getHallStudentKey(st) {
   return `hall_${st.room}_${String(st.bed).trim()}_${String(st.id).trim()}`;
@@ -25,6 +42,8 @@ function getAllMealMembers() {
     name: st.name,
     id: st.id,
     dept: st.dept,
+    room: st.room,
+    bed: st.bed,
     isExternal: false,
     seatInfo: `Room ${st.room} (${st.bed})`
   }));
@@ -35,11 +54,21 @@ function getAllMealMembers() {
     name: ext.name,
     id: ext.id || 'External',
     dept: ext.dept || 'Outside',
+    room: null,
+    bed: null,
     isExternal: true,
     seatInfo: 'Outside (No Seat)'
   }));
 
   return [...hallList, ...extList];
+}
+
+function isManagerMember(m) {
+  if (!mealManagerInfo || m.isExternal) return false;
+  return (
+    String(m.room) === String(mealManagerInfo.room) &&
+    String(m.bed).toLowerCase().trim() === String(mealManagerInfo.bed).toLowerCase().trim()
+  );
 }
 
 function ensureMealRecord(key, legacyId = null) {
@@ -59,6 +88,25 @@ function ensureMealRecord(key, legacyId = null) {
   return mealRecords[key];
 }
 
+function getTotalBazarCost() {
+  return bazarCosts.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+}
+
+function getTotalMealsAll(allMembers) {
+  const memberMeals = allMembers.reduce((sum, m) => {
+    const rec = ensureMealRecord(m.key, m.legacyId);
+    return sum + (Number(rec.meals) || 0);
+  }, 0);
+  return memberMeals + (Number(stolenMeals) || 0);
+}
+
+function getDynamicRate(allMembers) {
+  const totalCost = getTotalBazarCost();
+  const totalMeals = getTotalMealsAll(allMembers);
+  if (totalMeals <= 0) return 0;
+  return totalCost / totalMeals;
+}
+
 function openNavDrawer() {
   document.getElementById('left-drawer').classList.add('open');
   document.getElementById('nav-overlay').classList.add('active');
@@ -75,12 +123,12 @@ function goToAdminPage() {
     window.location.href = 'admin.html';
     return;
   }
-  const pass = prompt("Admin Panel Page-e dhukte Password Din:");
+  const pass = prompt("Provost Admin Panel-e dhukte Password Din:");
   if (pass === "12345") {
     sessionStorage.setItem('hallAdminAuth', 'true');
     window.location.href = 'admin.html';
   } else if (pass !== null) {
-    alert("Wrong Password!");
+    alert("Wrong Password! Access Denied.");
   }
 }
 
@@ -91,8 +139,85 @@ function logoutMealManager() {
 
 function saveMealData() {
   localStorage.setItem('hallMealRecords', JSON.stringify(mealRecords));
-  localStorage.setItem('hallMealRate', String(mealRate));
   localStorage.setItem('hallExternalMealStudents', JSON.stringify(externalBoarders));
+  localStorage.setItem('hallStolenMeals', String(stolenMeals));
+  localStorage.setItem('hallMealSchedule', JSON.stringify(mealSchedule));
+  localStorage.setItem('hallMealManagerInfo', JSON.stringify(mealManagerInfo));
+}
+
+function populateManagerStudentSelect() {
+  const sel = document.getElementById('manager-student-select');
+  sel.innerHTML = `<option value="">-- Select Hall Student for ⭐ --</option>`;
+  students.forEach((st, idx) => {
+    const selected =
+      mealManagerInfo &&
+      String(mealManagerInfo.room) === String(st.room) &&
+      String(mealManagerInfo.bed).toLowerCase().trim() === String(st.bed).toLowerCase().trim()
+        ? 'selected'
+        : '';
+    sel.innerHTML += `<option value="${idx}" ${selected}>${st.name} (Room ${st.room}, ${st.bed})</option>`;
+  });
+}
+
+function saveMealManagerStudent() {
+  const idxVal = document.getElementById('manager-student-select').value;
+  if (idxVal === '') {
+    mealManagerInfo = null;
+  } else {
+    const st = students[Number(idxVal)];
+    mealManagerInfo = {
+      name: st.name,
+      id: st.id,
+      room: st.room,
+      bed: st.bed
+    };
+  }
+  saveMealData();
+  alert("Meal Manager ⭐ updated!");
+  renderManagerTable();
+}
+
+function setMealWindowState(isOpen) {
+  mealSchedule.startDate = document.getElementById('meal-start-date').value;
+  mealSchedule.closeDate = document.getElementById('meal-close-date').value;
+  mealSchedule.isOpen = isOpen;
+  saveMealData();
+  renderScheduleStatus();
+}
+
+function renderScheduleStatus() {
+  document.getElementById('meal-start-date').value = mealSchedule.startDate || '';
+  document.getElementById('meal-close-date').value = mealSchedule.closeDate || '';
+  const datesInfo =
+    mealSchedule.startDate || mealSchedule.closeDate
+      ? ` [${mealSchedule.startDate || '?'} → ${mealSchedule.closeDate || '?'}]`
+      : '';
+  document.getElementById('manager-meal-state').textContent =
+    (mealSchedule.isOpen ? '🟢 Open' : '🔴 Closed') + datesInfo;
+}
+
+function changeStolenMeals(delta) {
+  const prev = stolenMeals;
+  stolenMeals = Math.max(0, stolenMeals + delta);
+  const actualDiff = stolenMeals - prev;
+  if (actualDiff !== 0) {
+    addToDailyLog(todayISO(), actualDiff);
+  }
+  saveMealData();
+  renderManagerTable();
+}
+
+function setStolenMealsDirect() {
+  const val = Number(document.getElementById('stolen-meals-set').value);
+  if (isNaN(val) || val < 0) return;
+  const diff = val - stolenMeals;
+  stolenMeals = val;
+  if (diff !== 0) {
+    addToDailyLog(todayISO(), diff);
+  }
+  document.getElementById('stolen-meals-set').value = '';
+  saveMealData();
+  renderManagerTable();
 }
 
 function addExternalMealStudent(event) {
@@ -128,18 +253,6 @@ function removeExternalMealStudent(extKey) {
   renderManagerTable();
 }
 
-function updateMealRate() {
-  const val = Number(document.getElementById('meal-rate-input').value);
-  if (!val || val <= 0) {
-    alert("Valid meal rate din!");
-    return;
-  }
-  mealRate = val;
-  saveMealData();
-  document.getElementById('meal-rate-input').value = '';
-  renderManagerTable();
-}
-
 function toggleMealStatus(memberKey) {
   const rec = ensureMealRecord(memberKey);
   rec.status = rec.status === 'ON' ? 'OFF' : 'ON';
@@ -149,7 +262,12 @@ function toggleMealStatus(memberKey) {
 
 function changeMealCount(memberKey, delta) {
   const rec = ensureMealRecord(memberKey);
+  const prev = rec.meals;
   rec.meals = Math.max(0, rec.meals + delta);
+  const actualDiff = rec.meals - prev;
+  if (actualDiff !== 0) {
+    addToDailyLog(todayISO(), actualDiff);
+  }
   saveMealData();
   renderManagerTable();
 }
@@ -171,43 +289,52 @@ function addDeposit(memberKey) {
 function resetMeals(memberKey) {
   if (!confirm("Ei student-er meal count 0 korte chan?")) return;
   const rec = ensureMealRecord(memberKey);
+  const prev = rec.meals;
   rec.meals = 0;
+  if (prev > 0) {
+    addToDailyLog(todayISO(), -prev);
+  }
   saveMealData();
   renderManagerTable();
 }
 
 function addAllActiveMeals() {
+  if (!mealSchedule.isOpen) {
+    if (!confirm("Meal ekhon Closed state-e ache. Tobuo +1 All ON Meals add korte chan?")) return;
+  }
   const allMembers = getAllMealMembers();
+  let addedCount = 0;
   allMembers.forEach(m => {
     const rec = ensureMealRecord(m.key, m.legacyId);
     if (rec.status === 'ON') {
       rec.meals += 1;
+      addedCount += 1;
     }
   });
+  if (addedCount > 0) {
+    addToDailyLog(todayISO(), addedCount);
+  }
   saveMealData();
   renderManagerTable();
 }
 
 function renderManagerTable() {
-  document.getElementById('current-rate-display').textContent = mealRate;
+  const allMembers = getAllMealMembers();
+  const totalCost = getTotalBazarCost();
+  const totalMeals = getTotalMealsAll(allMembers);
+  const rate = getDynamicRate(allMembers);
+
+  document.getElementById('current-rate-display').textContent = rate.toFixed(2);
+  document.getElementById('summary-total-cost').textContent = totalCost;
+  document.getElementById('summary-total-meals').textContent = totalMeals;
+  document.getElementById('stolen-meals-count').textContent = stolenMeals;
+
   const tbody = document.getElementById('meal-manager-tbody');
   const query = document.getElementById('meal-search').value.toLowerCase().trim();
   tbody.innerHTML = '';
 
-  const allMembers = getAllMealMembers();
-
-  let onCount = 0;
-  let totalMeals = 0;
-  allMembers.forEach(m => {
-    const rec = ensureMealRecord(m.key, m.legacyId);
-    if (rec.status === 'ON') onCount++;
-    totalMeals += rec.meals;
-  });
-  document.getElementById('active-on-count').textContent = onCount;
-  document.getElementById('total-meals-count').textContent = totalMeals;
-
   if (allMembers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">Kono student pawa jayni. Age Admin Panel theke student add korun ba upore external meal student add korun.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">Kono student pawa jayni.</td></tr>`;
     return;
   }
 
@@ -222,12 +349,16 @@ function renderManagerTable() {
     const safeKey = m.key.replace(/'/g, "\\'");
     const rec = ensureMealRecord(m.key, m.legacyId);
     const deposit = Number(rec.deposit) || 0;
-    const totalCost = rec.meals * mealRate;
-    const balance = deposit - totalCost;
+    const costForStudent = rec.meals * rate;
+    const balance = deposit - costForStudent;
 
     const statusBadge = rec.status === 'ON'
       ? `<span class="badge-on">ON</span>`
       : `<span class="badge-off">OFF</span>`;
+
+    const starMark = isManagerMember(m)
+      ? ` <span class="star-badge" title="Current Meal Manager">⭐</span>`
+      : '';
 
     const extBadge = m.isExternal
       ? `<br><span class="badge-ext">External / No Seat</span>`
@@ -238,17 +369,17 @@ function renderManagerTable() {
       : '';
 
     const balClass = balance >= 0 ? 'bal-positive' : 'bal-negative';
-    const balPrefix = balance < 0 ? `-৳${Math.abs(balance)}` : `৳${balance}`;
+    const balPrefix = balance < 0 ? `-৳${Math.abs(balance).toFixed(2)}` : `৳${balance.toFixed(2)}`;
 
     tbody.innerHTML += `
       <tr>
-        <td><strong>${m.name}</strong><br><span style="font-size:12px; color:#64748b;">${m.dept}</span>${extBadge}</td>
+        <td><strong>${m.name}${starMark}</strong><br><span style="font-size:12px; color:#64748b;">${m.dept}</span>${extBadge}</td>
         <td>ID: ${m.id}<br><span style="font-size:12px; color:#64748b;">${m.seatInfo}</span></td>
         <td>${statusBadge}</td>
         <td><strong>${rec.meals}</strong></td>
         <td class="${balClass}">
           ${balPrefix}
-          <br><span style="font-size:11px; color:#64748b; font-weight:normal;">Joma: ৳${deposit} | Cost: ৳${totalCost}</span>
+          <br><span style="font-size:11px; color:#64748b; font-weight:normal;">Joma: ৳${deposit} | Cost: ৳${costForStudent.toFixed(2)}</span>
         </td>
         <td>
           <button class="btn-sm btn-toggle" onclick="toggleMealStatus('${safeKey}')">ON/OFF</button>
@@ -282,6 +413,7 @@ function addBazarCost(event) {
   document.getElementById('bazar-item').value = '';
   document.getElementById('bazar-amount').value = '';
   renderManagerBazar();
+  renderManagerTable();
 }
 
 function deleteBazarCost(costId) {
@@ -289,16 +421,14 @@ function deleteBazarCost(costId) {
   bazarCosts = bazarCosts.filter(c => c.id !== costId);
   localStorage.setItem('hallMealBazarCosts', JSON.stringify(bazarCosts));
   renderManagerBazar();
+  renderManagerTable();
 }
 
 function renderManagerBazar() {
   const tbody = document.getElementById('manager-bazar-tbody');
   tbody.innerHTML = '';
 
-  let grandTotal = 0;
-  bazarCosts.forEach(c => {
-    grandTotal += Number(c.amount) || 0;
-  });
+  const grandTotal = getTotalBazarCost();
   document.getElementById('manager-grand-total').textContent = grandTotal;
 
   if (bazarCosts.length === 0) {
@@ -320,7 +450,8 @@ function renderManagerBazar() {
   });
 }
 
-document.getElementById('bazar-date').valueAsDate = new Date();
-
+document.getElementById('bazar-date').value = todayISO();
+populateManagerStudentSelect();
+renderScheduleStatus();
 renderManagerTable();
 renderManagerBazar();

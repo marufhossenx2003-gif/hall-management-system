@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- Left Slide-Out Navigation Drawer -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
@@ -19,12 +18,12 @@
       <a href="index.html" class="active">🏠 Rooms & Beds</a>
       <a href="meal.html">🍽️ Meal System</a>
       <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="meal-graph.html">📈 Meal Graph</a>
       <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
       <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
     </nav>
   </aside>
 
-  <!-- Header Section -->
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
@@ -34,8 +33,6 @@
   </header>
 
   <div class="container">
-
-    <!-- Search Section (User Panel) -->
     <section class="search-section">
       <h2>🔍 Search Student</h2>
       <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search by Name, ID, Department, Phone or District...">
@@ -44,20 +41,16 @@
 
     <hr>
 
-    <!-- Room List & Visual Bed Layout Section -->
     <section class="room-section">
       <h2>🏢 Hall Rooms & Beds</h2>
       <div id="room-list" class="room-grid"></div>
     </section>
-
   </div>
 
-  <!-- Student Info Modal -->
   <div id="info-modal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
       <span class="close-btn" onclick="closeInfoModal()">&times;</span>
       <h2>👤 Student Information</h2>
-
       <div id="student-details-container" style="display: flex; gap: 20px; align-items: center; margin-top: 15px; text-align: left;">
         <div id="student-details" style="flex: 1;"></div>
         <div id="student-image-box" style="width: 130px; text-align: center;">

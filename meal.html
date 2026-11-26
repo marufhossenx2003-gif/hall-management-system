@@ -14,14 +14,14 @@
       background: white;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       margin-bottom: 20px;
     }
     .meal-table-wrap {
       background: white;
       border-radius: 8px;
       padding: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       overflow-x: auto;
     }
     table {
@@ -68,7 +68,6 @@
 </head>
 <body>
 
-  <!-- Left Slide-Out Navigation Drawer -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
@@ -79,6 +78,7 @@
       <a href="index.html">🏠 Rooms & Beds</a>
       <a href="meal.html" class="active">🍽️ Meal System</a>
       <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="meal-graph.html">📈 Meal Graph</a>
       <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
       <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
     </nav>
@@ -96,7 +96,10 @@
 
     <div class="meal-controls">
       <div>
-        <strong>Current Meal Rate:</strong> ৳<span id="current-rate-display">60</span> / meal
+        <strong>Current Meal Rate (Cost / Total Meals):</strong> ৳<span id="current-rate-display">0.00</span> / meal
+      </div>
+      <div>
+        <strong>Meal Status:</strong> <span id="meal-window-status">Open</span>
       </div>
       <div style="flex: 1; min-width: 220px;">
         <input type="text" id="meal-search" onkeyup="renderMealTable()" placeholder="Search student by Name, ID, Department or External..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
@@ -106,7 +109,7 @@
     <div class="meal-table-wrap">
       <h2>📊 Student Meal Sheet</h2>
       <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Public View: Hall student ebong baire-r meal boarder der meal status o balance dekhano hocche.
+        Public View: Balance = Deposit - (Meals × Current Meal Rate). ⭐ = Current Meal Manager.
       </p>
       <table>
         <thead>

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - Hall Management System</title>
+  <title>Admin Panel (Provost) - Hall Management System</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .admin-layout {
       display: grid;
-      grid-template-columns: 1.4fr 1fr;
+      grid-template-columns: 1.35fr 1fr;
       gap: 24px;
       margin-top: 20px;
       align-items: start;
@@ -21,6 +21,7 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      margin-bottom: 20px;
     }
     .floor-group { margin-top: 16px; }
     .floor-title {
@@ -85,11 +86,43 @@
       cursor: pointer;
       font-weight: bold;
     }
+    .fee-list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-plus-fee {
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 11px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .fee-target-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 10px 0 14px;
+    }
+    .fee-target-bar input {
+      width: 120px;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Left Slide-Out Navigation Drawer -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
@@ -100,6 +133,7 @@
       <a href="index.html">🏠 Rooms & Beds</a>
       <a href="meal.html">🍽️ Meal System</a>
       <a href="meal-cost.html">🧾 Meal Total Cost</a>
+      <a href="meal-graph.html">📈 Meal Graph</a>
       <a href="admin.html" class="active">⚙️ Admin Panel</a>
       <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
     </nav>
@@ -108,7 +142,7 @@
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>⚙️ Admin Panel</h1>
+      <h1>⚙️ Provost Admin Panel</h1>
     </div>
     <button class="logout-btn" onclick="logoutAdmin()">Lock Admin 🔒</button>
   </header>
@@ -116,39 +150,59 @@
   <div class="container">
     <div class="admin-layout">
 
-      <div class="panel-box">
-        <h2>🏢 Select Floor, Room & Bed</h2>
-        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-          Jekono bed-e click korle dan paser form-e oi Floor, Room ar Bed automatic select hobe.
-        </p>
-        <div id="admin-floor-room-list"></div>
+      <div>
+        <div class="panel-box">
+          <h2>🏢 Select Floor, Room & Bed</h2>
+          <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+            Provost Access: Hall seat assign/vacate ebong Hall Fee (Joma/Baki) control.
+          </p>
+          <div id="admin-floor-room-list"></div>
+        </div>
       </div>
 
-      <div class="panel-box">
-        <h2>📝 Student Information Entry</h2>
-        <div id="selected-bed-banner" class="selected-target">
-          Selected: <strong>Floor 2 | Room 201 | Bed-1</strong>
+      <div>
+        <div class="panel-box">
+          <h2>📝 Student Information Entry</h2>
+          <div id="selected-bed-banner" class="selected-target">
+            Selected: <strong>Floor 2 | Room 201 | Bed-1</strong>
+          </div>
+
+          <form id="admin-student-form" onsubmit="saveBedStudent(event)">
+            <input type="text" id="st-name" placeholder="Student Name" required>
+            <input type="text" id="st-id" placeholder="Student ID" required>
+            <input type="text" id="st-dept" placeholder="Department" required>
+            <input type="text" id="st-phone" placeholder="Phone Number" required>
+            <input type="text" id="st-blood" placeholder="Blood Group (e.g. A+)" required>
+            <input type="text" id="st-district" placeholder="District" required>
+
+            <label style="font-size: 13px; font-weight: bold; margin-top: 6px; display: block;">
+              Student Photo (Optional):
+            </label>
+            <input type="file" id="st-image-file" accept="image/*">
+
+            <button type="submit" class="submit-btn">Save Student to Bed</button>
+          </form>
+
+          <button type="button" id="vacate-btn" class="btn-vacate" style="display: none;" onclick="vacateSelectedBed()">
+            Remove Student / Vacate Bed
+          </button>
         </div>
 
-        <form id="admin-student-form" onsubmit="saveBedStudent(event)">
-          <input type="text" id="st-name" placeholder="Student Name" required>
-          <input type="text" id="st-id" placeholder="Student ID" required>
-          <input type="text" id="st-dept" placeholder="Department" required>
-          <input type="text" id="st-phone" placeholder="Phone Number" required>
-          <input type="text" id="st-blood" placeholder="Blood Group (e.g. A+)" required>
-          <input type="text" id="st-district" placeholder="District" required>
+        <!-- Hall Fee Section (Provost Only: Student Name - Joma - Baki) -->
+        <div class="panel-box">
+          <h2>🏛️ Hall Fee (Joma - Baki) [Provost Only]</h2>
+          <p style="font-size: 12px; color: #64748b; margin-top: 3px;">
+            Ei hisab shudhumatro Admin (Provost) dekhte parben. <strong>+</strong> button-e click kore joma taka add korun.
+          </p>
 
-          <label style="font-size: 13px; font-weight: bold; margin-top: 6px; display: block;">
-            Student Photo (Optional):
-          </label>
-          <input type="file" id="st-image-file" accept="image/*">
+          <div class="fee-target-bar">
+            <span style="font-size: 13px;"><strong>Total Hall Fee:</strong> ৳<span id="hall-fee-target-display">3000</span></span>
+            <input type="number" id="hall-fee-target-input" placeholder="New Fee" min="0">
+            <button type="button" class="btn-plus-fee" style="background:#2563eb; font-size:12px; padding:6px 10px;" onclick="updateHallFeeTarget()">Set Fee</button>
+          </div>
 
-          <button type="submit" class="submit-btn">Save Student to Bed</button>
-        </form>
-
-        <button type="button" id="vacate-btn" class="btn-vacate" style="display: none;" onclick="vacateSelectedBed()">
-          Remove Student / Vacate Bed
-        </button>
+          <div id="hall-fee-list"></div>
+        </div>
       </div>
 
     </div>

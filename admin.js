@@ -1,5 +1,5 @@
 if (sessionStorage.getItem('hallAdminAuth') !== 'true') {
-  const pass = prompt("Admin Panel-e dhukte Password Din:");
+  const pass = prompt("Provost Admin Panel-e dhukte Password Din:");
   if (pass === "12345") {
     sessionStorage.setItem('hallAdminAuth', 'true');
   } else {
@@ -9,6 +9,9 @@ if (sessionStorage.getItem('hallAdminAuth') !== 'true') {
 }
 
 let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
+let mealManagerInfo = JSON.parse(localStorage.getItem('hallMealManagerInfo')) || null;
+let hallFeeTarget = Number(localStorage.getItem('hallFeeTarget')) || 3000;
+let hallFeeRecords = JSON.parse(localStorage.getItem('hallFeeRecords')) || {};
 
 const hallRoomsConfig = [
   // Floor 2
@@ -44,6 +47,18 @@ const hallRoomsConfig = [
 
 let selectedTarget = { floor: 2, room: 201, bed: 'Bed-1' };
 let existingImageData = '';
+
+function getSeatKey(st) {
+  return `${st.room}_${String(st.bed).trim()}_${String(st.id).trim()}`;
+}
+
+function isCurrentMealManager(st) {
+  if (!mealManagerInfo) return false;
+  return (
+    String(st.room) === String(mealManagerInfo.room) &&
+    String(st.bed).toLowerCase().trim() === String(mealManagerInfo.bed).toLowerCase().trim()
+  );
+}
 
 function openNavDrawer() {
   document.getElementById('left-drawer').classList.add('open');
@@ -147,13 +162,26 @@ function persistStudent(imageData) {
   students.push(newStudent);
   localStorage.setItem('hallStudents', JSON.stringify(students));
 
+  const seatKey = getSeatKey(newStudent);
+  if (typeof hallFeeRecords[seatKey] !== 'number') {
+    hallFeeRecords[seatKey] = 0;
+    localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+  }
+
   alert(`Saved to Floor ${selectedTarget.floor}, Room ${selectedTarget.room}, ${selectedTarget.bed}!`);
   existingImageData = imageData;
   document.getElementById('vacate-btn').style.display = 'block';
   renderAdminRooms();
+  renderHallFeeList();
 }
 
 function vacateSelectedBed() {
+  const existing = findStudentAtBed(selectedTarget.room, selectedTarget.bed);
+  if (existing) {
+    delete hallFeeRecords[getSeatKey(existing)];
+    localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+  }
+
   students = students.filter(
     s => !(String(s.room) === String(selectedTarget.room) && String(s.bed).toLowerCase().trim() === selectedTarget.bed.toLowerCase().trim())
   );
@@ -163,6 +191,62 @@ function vacateSelectedBed() {
   document.getElementById('vacate-btn').style.display = 'none';
   alert("Bed vacated!");
   renderAdminRooms();
+  renderHallFeeList();
+}
+
+function updateHallFeeTarget() {
+  const val = Number(document.getElementById('hall-fee-target-input').value);
+  if (isNaN(val) || val < 0) {
+    alert("Valid Hall Fee amount din!");
+    return;
+  }
+  hallFeeTarget = val;
+  localStorage.setItem('hallFeeTarget', String(hallFeeTarget));
+  document.getElementById('hall-fee-target-input').value = '';
+  renderHallFeeList();
+}
+
+function addHallFeePayment(seatKey) {
+  const amtStr = prompt("Koto taka joma diyeche? (Amount boshan):");
+  if (amtStr === null || amtStr.trim() === '') return;
+  const amt = Number(amtStr);
+  if (isNaN(amt) || amt <= 0) {
+    alert("Valid positive taka boshan!");
+    return;
+  }
+  hallFeeRecords[seatKey] = (Number(hallFeeRecords[seatKey]) || 0) + amt;
+  localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+  renderHallFeeList();
+}
+
+function renderHallFeeList() {
+  document.getElementById('hall-fee-target-display').textContent = hallFeeTarget;
+  const listEl = document.getElementById('hall-fee-list');
+  listEl.innerHTML = '';
+
+  if (students.length === 0) {
+    listEl.innerHTML = `<p style="color:#64748b; font-size:13px;">Kono student add kora hoyni.</p>`;
+    return;
+  }
+
+  students.forEach(st => {
+    const key = getSeatKey(st);
+    const safeKey = key.replace(/'/g, "\\'");
+    const joma = Number(hallFeeRecords[key]) || 0;
+    const baki = Math.max(0, hallFeeTarget - joma);
+    const star = isCurrentMealManager(st) ? ' ⭐' : '';
+
+    listEl.innerHTML += `
+      <div class="fee-list-row">
+        <div>
+          <strong>${st.name}${star}</strong> <span style="font-size:12px; color:#64748b;">(R-${st.room}, ${st.bed})</span><br>
+          <span>Joma: <strong style="color:#16a34a;">৳${joma}</strong></span> |
+          <span>Baki: <strong style="color:${baki > 0 ? '#dc2626' : '#16a34a'};">৳${baki}</strong></span>
+        </div>
+        <button type="button" class="btn-plus-fee" title="Add Joma Taka" onclick="addHallFeePayment('${safeKey}')">+</button>
+      </div>
+    `;
+  });
 }
 
 function renderAdminRooms() {
@@ -194,7 +278,8 @@ function renderAdminRooms() {
 
         const statusClass = occ ? 'occupied' : 'empty';
         const selectedClass = isSelected ? 'selected' : '';
-        const label = occ ? `${bedName} — ${occ.name}` : `${bedName} — Empty`;
+        const star = occ && isCurrentMealManager(occ) ? ' ⭐' : '';
+        const label = occ ? `${bedName} — ${occ.name}${star}` : `${bedName} — Empty`;
 
         buttonsHTML += `
           <button type="button" class="bed-select-btn ${statusClass} ${selectedClass}" onclick="selectBed(${floorNo}, ${roomObj.room}, '${bedName}')">
@@ -213,4 +298,5 @@ function renderAdminRooms() {
 }
 
 renderAdminRooms();
+renderHallFeeList();
 selectBed(2, 201, 'Bed-1');
