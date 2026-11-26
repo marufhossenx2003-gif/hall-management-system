@@ -1,68 +1,203 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hall Management System</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Hall Residence & Boarders Directory | Hall Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
+  <!-- Navigation Drawer Backdrop -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+
+  <!-- Off-Canvas Drawer -->
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
-      <h3>🧭 Navigation</h3>
-      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+      <div class="drawer-title">
+        <div class="brand-icon" style="width:28px;height:28px;background:var(--primary);border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;color:white;">
+          <i data-lucide="building" style="width:16px;height:16px;"></i>
+        </div>
+        <span>Hall Portal</span>
+      </div>
+      <button class="drawer-close" onclick="closeNavDrawer()" title="Close Drawer">
+        <i data-lucide="x"></i>
+      </button>
     </div>
+
     <nav class="drawer-links">
-      <a href="index.html" class="active">🏠 Rooms & Beds</a>
-      <a href="meal.html">🍽️ Meal System</a>
-      <a href="meal-cost.html">🧾 Meal Total Cost</a>
-      <a href="meal-graph.html">📈 Meal Graph</a>
-      <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
-      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+      <div class="drawer-section-label">General</div>
+      <a href="index.html" class="active">
+        <i data-lucide="layout-grid"></i> Rooms & Beds
+      </a>
+      <a href="meal.html">
+        <i data-lucide="utensils"></i> Dining & Meals
+      </a>
+      <a href="meal-cost.html">
+        <i data-lucide="receipt"></i> Bazar Expenses
+      </a>
+      <a href="meal-graph.html">
+        <i data-lucide="line-chart"></i> Meal Analytics
+      </a>
+
+      <div class="drawer-section-label">Management</div>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">
+        <i data-lucide="chef-hat"></i> Meal Manager Portal
+      </a>
+      <a href="javascript:void(0)" onclick="goToAdminPage()">
+        <i data-lucide="shield"></i> Provost Admin Console
+      </a>
     </nav>
+
+    <div class="drawer-footer">
+      <div>Hall Management System &middot; v2.0</div>
+    </div>
   </aside>
 
-  <header>
+  <!-- Sticky Top Header -->
+  <header class="app-header">
     <div class="header-left">
-      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>🏛️ Hall Management System</h1>
+      <button class="btn btn-outline btn-icon" onclick="openNavDrawer()" title="Open Navigation Menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-icon">
+          <i data-lucide="building-2"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Hall Management</h1>
+          <p>Residence & Dining Portal</p>
+        </div>
+      </div>
     </div>
-    <button id="admin-btn" onclick="goToAdminPage()">Admin Panel 🔒</button>
+
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" onclick="goToMealManagerPage()">
+        <i data-lucide="chef-hat"></i> Meal Manager
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="goToAdminPage()">
+        <i data-lucide="lock"></i> Admin Panel
+      </button>
+    </div>
   </header>
 
-  <div class="container">
-    <section class="search-section">
-      <h2>🔍 Search Student</h2>
-      <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search by Name, ID, Department, Phone or District...">
-      <div id="search-results"></div>
-    </section>
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h2><i data-lucide="layout-grid" style="color:var(--primary);"></i> Hall Rooms & Boarders</h2>
+        <p>Real-time room occupancy, seat allocations, and resident profiles.</p>
+      </div>
+    </div>
 
-    <hr>
+    <!-- Stat Metrics Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Total Capacity</div>
+          <div id="stat-total-seats" class="stat-value">--</div>
+          <div class="stat-sub">Floors 2, 3 & 4</div>
+        </div>
+        <div class="stat-icon primary">
+          <i data-lucide="building"></i>
+        </div>
+      </div>
 
-    <section class="room-section">
-      <h2>🏢 Hall Rooms & Beds</h2>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Occupied Beds</div>
+          <div id="stat-occupied-seats" class="stat-value" style="color:var(--primary-hover);">--</div>
+          <div class="stat-sub">Assigned residents</div>
+        </div>
+        <div class="stat-icon success">
+          <i data-lucide="user-check"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Available Beds</div>
+          <div id="stat-vacant-seats" class="stat-value" style="color:var(--success);">--</div>
+          <div class="stat-sub">Ready for assignment</div>
+        </div>
+        <div class="stat-icon warning">
+          <i data-lucide="bed"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Active Meal Manager</div>
+          <div id="stat-meal-manager" class="stat-value" style="font-size:15px; margin-top:6px; font-weight:700;">--</div>
+          <div class="stat-sub">Dining in-charge</div>
+        </div>
+        <div class="stat-icon accent">
+          <i data-lucide="star"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search & Floor Filter -->
+    <div class="toolbar-card">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="search-input" onkeyup="searchStudent()" placeholder="Search resident by name, student ID, department, district, or phone...">
+      </div>
+
+      <div class="filter-pills">
+        <span style="font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Floor:</span>
+        <button class="pill-btn active" data-floor="all" onclick="filterFloor('all')">
+          <i data-lucide="layers"></i> All Floors
+        </button>
+        <button class="pill-btn" data-floor="2" onclick="filterFloor(2)">Floor 2</button>
+        <button class="pill-btn" data-floor="3" onclick="filterFloor(3)">Floor 3</button>
+        <button class="pill-btn" data-floor="4" onclick="filterFloor(4)">Floor 4</button>
+      </div>
+    </div>
+
+    <!-- Live Search Results Dropdown -->
+    <div id="search-results" style="margin-bottom: 24px;"></div>
+
+    <!-- Rooms Grid -->
+    <section>
       <div id="room-list" class="room-grid"></div>
     </section>
-  </div>
+  </main>
 
-  <div id="info-modal" class="modal">
-    <div class="modal-content" style="max-width: 550px;">
-      <span class="close-btn" onclick="closeInfoModal()">&times;</span>
-      <h2>👤 Student Information</h2>
-      <div id="student-details-container" style="display: flex; gap: 20px; align-items: center; margin-top: 15px; text-align: left;">
-        <div id="student-details" style="flex: 1;"></div>
-        <div id="student-image-box" style="width: 130px; text-align: center;">
-          <img id="st-profile-pic" src="" alt="Student Photo" style="width: 120px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
+  <!-- Student Info Modal -->
+  <div id="info-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i data-lucide="user" style="color:var(--primary);"></i> Resident Profile</h3>
+        <button class="modal-close-btn" onclick="closeInfoModal()" title="Close Profile">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+          <div style="width:120px; flex-shrink:0; text-align:center;">
+            <img id="st-profile-pic" src="" alt="Boarder Photo" style="width:110px; height:130px; object-fit:cover; border-radius:var(--radius-md); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
+          </div>
+          <div id="student-details" style="flex:1; min-width:200px;"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div>&copy; 2026 Hall Management System &middot; All Rights Reserved.</div>
+    <div>Live Cloud Synchronized via Supabase Realtime</div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="meal.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>

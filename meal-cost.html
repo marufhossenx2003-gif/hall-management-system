@@ -1,109 +1,158 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meal Total Cost - Hall Management System</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .cost-summary-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      background: white;
-      padding: 16px 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      margin-bottom: 20px;
-    }
-    .cost-total-badge {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .cost-table-wrap {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #e2e8f0;
-      text-align: left;
-      font-size: 14px;
-    }
-    th { background-color: #1e293b; color: white; }
-  </style>
+  <title>Bazar Expenses Log | Hall Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
+  <!-- Navigation Drawer Backdrop -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+
+  <!-- Off-Canvas Drawer -->
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
-      <h3>🧭 Navigation</h3>
-      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+      <div class="drawer-title">
+        <div class="brand-icon" style="width:28px;height:28px;background:var(--primary);border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;color:white;">
+          <i data-lucide="receipt" style="width:16px;height:16px;"></i>
+        </div>
+        <span>Hall Portal</span>
+      </div>
+      <button class="drawer-close" onclick="closeNavDrawer()" title="Close Drawer">
+        <i data-lucide="x"></i>
+      </button>
     </div>
+
     <nav class="drawer-links">
-      <a href="index.html">🏠 Rooms & Beds</a>
-      <a href="meal.html">🍽️ Meal System</a>
-      <a href="meal-cost.html" class="active">🧾 Meal Total Cost</a>
-      <a href="meal-graph.html">📈 Meal Graph</a>
-      <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
-      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+      <div class="drawer-section-label">General</div>
+      <a href="index.html">
+        <i data-lucide="layout-grid"></i> Rooms & Beds
+      </a>
+      <a href="meal.html">
+        <i data-lucide="utensils"></i> Dining & Meals
+      </a>
+      <a href="meal-cost.html" class="active">
+        <i data-lucide="receipt"></i> Bazar Expenses
+      </a>
+      <a href="meal-graph.html">
+        <i data-lucide="line-chart"></i> Meal Analytics
+      </a>
+
+      <div class="drawer-section-label">Management</div>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">
+        <i data-lucide="chef-hat"></i> Meal Manager Portal
+      </a>
+      <a href="javascript:void(0)" onclick="goToAdminPage()">
+        <i data-lucide="shield"></i> Provost Admin Console
+      </a>
     </nav>
+
+    <div class="drawer-footer">
+      <div>Hall Management System &middot; v2.0</div>
+    </div>
   </aside>
 
-  <header>
+  <!-- Sticky Top Header -->
+  <header class="app-header">
     <div class="header-left">
-      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>🧾 Meal Total Cost</h1>
+      <button class="btn btn-outline btn-icon" onclick="openNavDrawer()" title="Open Navigation Menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
+          <i data-lucide="receipt"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Bazar Expenses</h1>
+          <p>Public Expenditure Audit</p>
+        </div>
+      </div>
     </div>
-    <button id="admin-btn" onclick="goToMealManagerPage()">Meal Manager 🔒</button>
+
+    <div class="header-actions">
+      <a href="meal.html" class="btn btn-outline btn-sm">
+        <i data-lucide="utensils"></i> Meal Sheet
+      </a>
+      <button class="btn btn-primary btn-sm" onclick="goToMealManagerPage()">
+        <i data-lucide="plus"></i> Add Expense
+      </button>
+    </div>
   </header>
 
-  <div class="container">
-    <div class="cost-summary-bar">
-      <div class="cost-total-badge">
-        Total Meal Bazar Cost: ৳<span id="public-grand-total">0</span>
-      </div>
-      <div style="flex: 1; min-width: 220px;">
-        <input type="text" id="cost-search" onkeyup="renderPublicCosts()" placeholder="Search by Date or Item (e.g. Chal, Murgi, Rickshaw)..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+  <!-- Main Content -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h2><i data-lucide="receipt" style="color:var(--primary);"></i> Daily Bazar Expenditure Log</h2>
+        <p>Complete itemized records of dining hall grocery and operational purchases.</p>
       </div>
     </div>
 
-    <div class="cost-table-wrap">
-      <h2>📋 Daily Bazar & Meal Expense Sheet</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Public View: Shudhumatro <strong>Meal Manager</strong> nijer locked panel theke ei hisab update korte parben.
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Item / Bazar Description</th>
-            <th>Amount (Tk)</th>
-          </tr>
-        </thead>
-        <tbody id="public-cost-tbody"></tbody>
-      </table>
-    </div>
-  </div>
+    <!-- Stat Metrics Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Total Expenditure</div>
+          <div class="stat-value" style="color:var(--primary-hover);">৳<span id="public-grand-total">0</span></div>
+          <div class="stat-sub">Cumulative bazaar total</div>
+        </div>
+        <div class="stat-icon primary">
+          <i data-lucide="banknote"></i>
+        </div>
+      </div>
 
-  <script src="meal-cost.js"></script>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Logged Entries</div>
+          <div id="public-cost-count" class="stat-value">0</div>
+          <div class="stat-sub">Itemized procurement records</div>
+        </div>
+        <div class="stat-icon accent">
+          <i data-lucide="list"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search Filter -->
+    <div class="toolbar-card">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="cost-search" onkeyup="renderPublicCosts()" placeholder="Filter expenses by item name, date (e.g. 2026-11), or category...">
+      </div>
+    </div>
+
+    <!-- Expenses Table Card -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:180px;">Procurement Date</th>
+              <th>Item / Expenditure Description</th>
+              <th style="width:200px;">Amount (BDT)</th>
+            </tr>
+          </thead>
+          <tbody id="public-cost-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div>&copy; 2026 Hall Management System &middot; All Rights Reserved.</div>
+    <div>Live Cloud Synchronized via Supabase Realtime</div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="meal.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/meal-cost.js"></script>
 </body>
 </html>

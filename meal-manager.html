@@ -1,258 +1,319 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meal Manager - Hall Management System</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .meal-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      align-items: center;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      margin-bottom: 20px;
-    }
-    .meal-table-wrap {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      overflow-x: auto;
-      margin-bottom: 24px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 11px;
-      border-bottom: 1px solid #e2e8f0;
-      text-align: left;
-      font-size: 14px;
-    }
-    th { background-color: #1e293b; color: white; }
-    .badge-on {
-      background: #dcfce7;
-      color: #166534;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 12px;
-    }
-    .badge-off {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 12px;
-    }
-    .badge-ext {
-      background: #fef3c7;
-      color: #92400e;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 11px;
-      display: inline-block;
-      margin-top: 3px;
-    }
-    .btn-sm {
-      padding: 6px 9px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 12px;
-      margin: 2px 3px 2px 0;
-    }
-    .btn-toggle { background: #2563eb; color: white; }
-    .btn-plus { background: #16a34a; color: white; }
-    .btn-minus { background: #dc2626; color: white; }
-    .btn-deposit { background: #0d9488; color: white; }
-    .btn-reset { background: #f59e0b; color: white; }
-    .logout-btn {
-      background: #475569;
-      color: white;
-      border: none;
-      padding: 9px 14px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .bal-positive { color: #16a34a; font-weight: bold; }
-    .bal-negative { color: #dc2626; font-weight: bold; }
-    .inline-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-      align-items: center;
-    }
-    .inline-form input,
-    .inline-form select {
-      padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-  </style>
+  <title>Meal Manager Control Center | Hall Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
+  <!-- Navigation Drawer Backdrop -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+
+  <!-- Off-Canvas Drawer -->
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
-      <h3>🧭 Navigation</h3>
-      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+      <div class="drawer-title">
+        <div class="brand-icon" style="width:28px;height:28px;background:var(--primary);border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;color:white;">
+          <i data-lucide="chef-hat" style="width:16px;height:16px;"></i>
+        </div>
+        <span>Hall Portal</span>
+      </div>
+      <button class="drawer-close" onclick="closeNavDrawer()" title="Close Drawer">
+        <i data-lucide="x"></i>
+      </button>
     </div>
+
     <nav class="drawer-links">
-      <a href="index.html">🏠 Rooms & Beds</a>
-      <a href="meal.html">🍽️ Meal System</a>
-      <a href="meal-cost.html">🧾 Meal Total Cost</a>
-      <a href="meal-graph.html">📈 Meal Graph</a>
-      <a href="javascript:void(0)" onclick="goToAdminPage()">⚙️ Admin Panel</a>
-      <a href="meal-manager.html" class="active">👨‍🍳 Meal Manager</a>
+      <div class="drawer-section-label">General</div>
+      <a href="index.html">
+        <i data-lucide="layout-grid"></i> Rooms & Beds
+      </a>
+      <a href="meal.html">
+        <i data-lucide="utensils"></i> Dining & Meals
+      </a>
+      <a href="meal-cost.html">
+        <i data-lucide="receipt"></i> Bazar Expenses
+      </a>
+      <a href="meal-graph.html">
+        <i data-lucide="line-chart"></i> Meal Analytics
+      </a>
+
+      <div class="drawer-section-label">Management</div>
+      <a href="meal-manager.html" class="active">
+        <i data-lucide="chef-hat"></i> Meal Manager Portal
+      </a>
+      <a href="javascript:void(0)" onclick="goToAdminPage()">
+        <i data-lucide="shield"></i> Provost Admin Console
+      </a>
     </nav>
+
+    <div class="drawer-footer">
+      <div>Hall Management System &middot; v2.0</div>
+    </div>
   </aside>
 
-  <header>
+  <!-- Sticky Top Header -->
+  <header class="app-header">
     <div class="header-left">
-      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>👨‍🍳 Meal Manager (Student Access)</h1>
+      <button class="btn btn-outline btn-icon" onclick="openNavDrawer()" title="Open Navigation Menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+          <i data-lucide="chef-hat"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Meal Manager Portal</h1>
+          <p>Dining & Ledger Operations</p>
+        </div>
+      </div>
     </div>
-    <button class="logout-btn" onclick="logoutMealManager()">Lock Manager 🔒</button>
+
+    <div class="header-actions">
+      <a href="meal.html" class="btn btn-outline btn-sm">
+        <i data-lucide="eye"></i> Public View
+      </a>
+      <button class="btn btn-danger btn-sm" onclick="logoutMealManager()">
+        <i data-lucide="log-out"></i> Lock Manager
+      </button>
+    </div>
   </header>
 
-  <div class="container">
-
-    <!-- Dynamic Rate & Schedule Control -->
-    <div class="meal-controls">
-      <div>
-        <strong>Dynamic Meal Rate (Cost / Meals):</strong> ৳<span id="current-rate-display">0.00</span> / meal
+  <!-- Main Content -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h2><i data-lucide="settings" style="color:var(--primary);"></i> Meal Management & Daily Operations</h2>
+        <p>Record daily meals, manage diner balances, input bazaar expenditure, and configure dining schedules.</p>
       </div>
       <div>
-        <strong>Total Cost:</strong> ৳<span id="summary-total-cost">0</span> |
-        <strong>Total Meals (incl. Churi):</strong> <span id="summary-total-meals">0</span>
-      </div>
-      <div style="margin-left:auto;">
-        <button type="button" class="btn-sm btn-plus" onclick="addAllActiveMeals()">+1 All ON Meals (Today)</button>
+        <button type="button" class="btn btn-primary" onclick="addAllActiveMeals()">
+          <i data-lucide="check-check"></i> +1 All Active (ON) Diners Today
+        </button>
       </div>
     </div>
 
-    <!-- Assign Star Meal Manager + Month Start/Close Dates -->
-    <div class="meal-table-wrap">
-      <h2>⭐ Current Meal Manager & Meal Start/Close Schedule</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Hall-er je student meal manager hisabe kaj korben take select korun (tar name-er pashe ⭐ show korbe) ebong month-er jekono date theke meal start/close set korun.
-      </p>
-
-      <div class="inline-form">
-        <label style="font-size:13px; font-weight:bold;">Meal Manager Student:</label>
-        <select id="manager-student-select" style="min-width: 220px;"></select>
-        <button type="button" class="btn-sm btn-toggle" onclick="saveMealManagerStudent()">Set ⭐ Manager</button>
+    <!-- Stat Metrics Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Calculated Rate</div>
+          <div class="stat-value">৳<span id="current-rate-display">0.00</span></div>
+          <div class="stat-sub">Live dynamic rate</div>
+        </div>
+        <div class="stat-icon primary">
+          <i data-lucide="trending-up"></i>
+        </div>
       </div>
 
-      <div class="inline-form" style="margin-top: 14px;">
-        <label style="font-size:13px; font-weight:bold;">Meal Start Date:</label>
-        <input type="date" id="meal-start-date">
-        <label style="font-size:13px; font-weight:bold;">Meal Close Date:</label>
-        <input type="date" id="meal-close-date">
-        <button type="button" class="btn-sm btn-plus" onclick="setMealWindowState(true)">Start / Open Meal</button>
-        <button type="button" class="btn-sm btn-minus" onclick="setMealWindowState(false)">Close Meal</button>
-        <span style="font-size:13px; margin-left:6px;">Current State: <strong id="manager-meal-state">Open</strong></span>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Bazar Spend</div>
+          <div class="stat-value">৳<span id="summary-total-cost">0</span></div>
+          <div class="stat-sub">Current total expense</div>
+        </div>
+        <div class="stat-icon warning">
+          <i data-lucide="shopping-cart"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Total Meals Tallied</div>
+          <div id="summary-total-meals" class="stat-value">0</div>
+          <div class="stat-sub">Boarders + unbilled meals</div>
+        </div>
+        <div class="stat-icon accent">
+          <i data-lucide="utensils"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Unbilled / Extra Meals</div>
+          <div id="stolen-meals-count" class="stat-value" style="color:var(--danger);">0</div>
+          <div class="stat-sub">Auxiliary consumption count</div>
+        </div>
+        <div class="stat-icon danger">
+          <i data-lucide="alert-circle"></i>
+        </div>
       </div>
     </div>
 
-    <!-- Churi Meal (Stolen Meal) Counter -->
-    <div class="meal-table-wrap">
-      <h2>🕵️ Churi Meal (Stolen Meals Today / Total)</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Ajke koyta meal churi hoyechhe seta ekhane update korun — etaw <strong>Total Meal</strong>-e count hobe ebong meal rate-e effect korbe.
-      </p>
-      <div class="inline-form">
-        <span style="font-size:15px;"><strong>Total Churi Meals:</strong> <span id="stolen-meals-count" style="color:#dc2626; font-weight:bold;">0</span></span>
-        <button type="button" class="btn-sm btn-plus" onclick="changeStolenMeals(1)">+1 Churi Meal</button>
-        <button type="button" class="btn-sm btn-minus" onclick="changeStolenMeals(-1)">-1</button>
-        <input type="number" id="stolen-meals-set" placeholder="Set exact" min="0" style="width:110px;">
-        <button type="button" class="btn-sm btn-toggle" onclick="setStolenMealsDirect()">Set Count</button>
+    <!-- Management Action Controls Grid -->
+    <div class="action-grid">
+      <!-- Manager Role & Schedule Card -->
+      <div class="action-card">
+        <h4><i data-lucide="star" style="color:#d97706;"></i> Manager Assignment & Dining Schedule</h4>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Designate student manager and dining window.</div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <label class="form-label">Assigned Meal Manager</label>
+            <div style="display:flex; gap:8px;">
+              <select id="manager-student-select" class="form-control" style="font-size:13px;"></select>
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveMealManagerStudent()">Assign</button>
+            </div>
+          </div>
+
+          <div style="margin-top:4px;">
+            <label class="form-label">Dining Window</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div>
+                <span style="font-size:11px; color:var(--text-muted);">Start Date:</span>
+                <input type="date" id="meal-start-date" class="form-control" style="padding:6px 10px; font-size:12.5px;">
+              </div>
+              <div>
+                <span style="font-size:11px; color:var(--text-muted);">End Date:</span>
+                <input type="date" id="meal-close-date" class="form-control" style="padding:6px 10px; font-size:12.5px;">
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+              <button type="button" class="btn btn-success btn-sm" onclick="setMealWindowState(true)">
+                <i data-lucide="play"></i> Open Dining
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="setMealWindowState(false)">
+                <i data-lucide="square"></i> Close Dining
+              </button>
+            </div>
+            <div id="manager-meal-state" style="margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extra / Unbilled Meals Counter -->
+      <div class="action-card">
+        <h4><i data-lucide="alert-octagon" style="color:var(--danger);"></i> Auxiliary / Unbilled Meals Counter</h4>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Meals consumed without individual billing (factored into the meal rate).</div>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="changeStolenMeals(1)">
+              <i data-lucide="plus"></i> +1 Extra Meal
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="changeStolenMeals(-1)">
+              <i data-lucide="minus"></i> -1 Extra Meal
+            </button>
+          </div>
+
+          <div>
+            <label class="form-label">Set Exact Count Directly</label>
+            <div style="display:flex; gap:8px;">
+              <input type="number" id="stolen-meals-set" class="form-control" placeholder="Exact count" min="0" style="width:130px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="setStolenMealsDirect()">Update</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add External Diner Form -->
+      <div class="action-card">
+        <h4><i data-lucide="user-plus" style="color:var(--accent);"></i> Add External Diner</h4>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Register boarders who eat in the dining hall but do not hold a hall seat.</div>
+
+        <form onsubmit="addExternalMealStudent(event)" style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ext-st-name" class="form-control" placeholder="Diner's full name *" required>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <input type="text" id="ext-st-id" class="form-control" placeholder="ID (Optional)">
+            <input type="text" id="ext-st-dept" class="form-control" placeholder="Department / Note">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="margin-top:4px;">
+            <i data-lucide="plus"></i> Register External Diner
+          </button>
+        </form>
       </div>
     </div>
 
-    <!-- Add External Meal Student -->
-    <div class="meal-table-wrap">
-      <h2>➕ Add External Meal Student (No Hall Seat)</h2>
-      <form class="inline-form" onsubmit="addExternalMealStudent(event)">
-        <input type="text" id="ext-st-name" placeholder="Student Name *" style="flex: 1; min-width: 180px;" required>
-        <input type="text" id="ext-st-id" placeholder="ID (Optional)" style="width: 150px;">
-        <input type="text" id="ext-st-dept" placeholder="Department / Note (Optional)" style="width: 180px;">
-        <button type="submit" class="btn-sm btn-plus" style="padding: 9px 16px; font-size: 14px;">+ Add Meal Student</button>
-      </form>
-    </div>
-
-    <!-- Manage Student Meals & Balance -->
-    <div class="meal-table-wrap">
-      <h2>🛠️ Manage Student Meals & Balance</h2>
-      <div style="margin-top: 8px; max-width: 340px;">
-        <input type="text" id="meal-search" onkeyup="renderManagerTable()" placeholder="Search student by Name, ID or Room..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>ID & Seat / Type</th>
-            <th>Meal Status</th>
-            <th>Total Meals</th>
-            <th>Balance</th>
-            <th>Manager Actions</th>
-          </tr>
-        </thead>
-        <tbody id="meal-manager-tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Daily Bazar / Cost Entry -->
-    <div class="meal-table-wrap">
-      <h2>🧾 Daily Meal Bazar / Cost Entry</h2>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        Cost add korle <strong>Total Cost / Total Meals</strong> hisabe meal rate automatic barbe.
-      </p>
-
-      <form class="inline-form" onsubmit="addBazarCost(event)">
-        <input type="date" id="bazar-date" required>
-        <input type="text" id="bazar-item" placeholder="Item Name (e.g. Chal, Murgi, Rickshaw vara)" style="flex: 1; min-width: 200px;" required>
-        <input type="number" id="bazar-amount" placeholder="Cost (Tk)" style="width: 130px;" min="1" required>
-        <button type="submit" class="btn-sm btn-plus" style="padding: 9px 16px; font-size: 14px;">+ Add Cost</button>
-      </form>
-
-      <div style="margin-top: 14px; font-size: 15px;">
-        <strong>Grand Total Meal Cost:</strong> <span style="color: #dc2626; font-weight: bold;">৳<span id="manager-grand-total">0</span></span>
+    <!-- Diner Meal Ledger & Actions -->
+    <div class="table-card">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-size:16px; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="users" style="color:var(--primary);"></i> Diner Meal Roster & Balances
+        </h3>
+        <div class="search-box" style="min-width:240px;">
+          <i data-lucide="search"></i>
+          <input type="text" id="meal-search" onkeyup="renderManagerTable()" placeholder="Filter diners by name, room, ID...">
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Item / Description</th>
-            <th>Cost (Tk)</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="manager-bazar-tbody"></tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Diner / Resident</th>
+              <th>Seat / Type</th>
+              <th>Meal State</th>
+              <th>Meals Count</th>
+              <th>Account Balance</th>
+              <th>Quick Manager Actions</th>
+            </tr>
+          </thead>
+          <tbody id="meal-manager-tbody"></tbody>
+        </table>
+      </div>
     </div>
 
-  </div>
+    <!-- Daily Bazar Expense Form & Log -->
+    <div class="table-card" style="margin-top:28px;">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border);">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <h3 style="font-size:16px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="receipt" style="color:var(--warning);"></i> Bazar Expense Entry
+          </h3>
+          <span style="font-size:14px; font-weight:700; color:var(--text-main);">
+            Total Recorded Expenses: <strong style="color:var(--primary);">৳<span id="manager-grand-total">0</span></strong>
+          </span>
+        </div>
+      </div>
 
-  <script src="meal-manager.js"></script>
+      <div style="padding:20px; background:var(--bg-surface-alt); border-bottom:1px solid var(--border);">
+        <form onsubmit="addBazarCost(event)" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <div style="width:160px;">
+            <input type="date" id="bazar-date" class="form-control" required>
+          </div>
+          <div style="flex:1; min-width:220px;">
+            <input type="text" id="bazar-item" class="form-control" placeholder="Expense description (e.g. Rice, Chicken, Spices, Transport)" required>
+          </div>
+          <div style="width:140px;">
+            <input type="number" id="bazar-amount" class="form-control" placeholder="Amount (BDT)" min="1" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="padding:10px 16px;">
+            <i data-lucide="plus-circle"></i> Add Expense
+          </button>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Entry Date</th>
+              <th>Description / Item</th>
+              <th>Expense Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="manager-bazar-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div>&copy; 2026 Hall Management System &middot; All Rights Reserved.</div>
+    <div>Live Cloud Synchronized via Supabase Realtime</div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="meal.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/meal-manager.js"></script>
 </body>
 </html>

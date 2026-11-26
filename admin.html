@@ -1,216 +1,207 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel (Provost) - Hall Management System</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .admin-layout {
-      display: grid;
-      grid-template-columns: 1.35fr 1fr;
-      gap: 24px;
-      margin-top: 20px;
-      align-items: start;
-    }
-    @media (max-width: 850px) {
-      .admin-layout { grid-template-columns: 1fr; }
-    }
-    .panel-box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-      margin-bottom: 20px;
-    }
-    .floor-group { margin-top: 16px; }
-    .floor-title {
-      background: #e2e8f0;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      color: #0f172a;
-      margin-bottom: 10px;
-    }
-    .admin-room-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 12px;
-    }
-    .admin-room-card {
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 10px;
-      background: #f8fafc;
-    }
-    .admin-room-card h4 { margin-bottom: 8px; font-size: 15px; }
-    .bed-select-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 7px 10px;
-      margin-top: 6px;
-      border-radius: 5px;
-      font-weight: bold;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .bed-select-btn.empty { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
-    .bed-select-btn.occupied { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-    .bed-select-btn.selected { outline: 3px solid #2563eb; }
-    .selected-target {
-      background: #eff6ff;
-      border: 1px solid #93c5fd;
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-    .btn-vacate {
-      width: 100%;
-      background: #dc2626;
-      color: white;
-      border: none;
-      padding: 9px;
-      border-radius: 5px;
-      margin-top: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .logout-btn {
-      background: #475569;
-      color: white;
-      border: none;
-      padding: 9px 14px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .fee-list-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 14px;
-      flex-wrap: wrap;
-    }
-    .btn-plus-fee {
-      background: #16a34a;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 5px 11px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .fee-target-bar {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 10px 0 14px;
-    }
-    .fee-target-bar input {
-      width: 120px;
-      padding: 6px 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-    }
-  </style>
+  <title>Provost Admin Console | Hall Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
+  <!-- Navigation Drawer Backdrop -->
   <div id="nav-overlay" class="nav-overlay" onclick="closeNavDrawer()"></div>
+
+  <!-- Off-Canvas Drawer -->
   <aside id="left-drawer" class="left-drawer">
     <div class="drawer-header">
-      <h3>🧭 Navigation</h3>
-      <button class="drawer-close" onclick="closeNavDrawer()">&times;</button>
+      <div class="drawer-title">
+        <div class="brand-icon" style="width:28px;height:28px;background:var(--primary);border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;color:white;">
+          <i data-lucide="shield" style="width:16px;height:16px;"></i>
+        </div>
+        <span>Hall Portal</span>
+      </div>
+      <button class="drawer-close" onclick="closeNavDrawer()" title="Close Drawer">
+        <i data-lucide="x"></i>
+      </button>
     </div>
+
     <nav class="drawer-links">
-      <a href="index.html">🏠 Rooms & Beds</a>
-      <a href="meal.html">🍽️ Meal System</a>
-      <a href="meal-cost.html">🧾 Meal Total Cost</a>
-      <a href="meal-graph.html">📈 Meal Graph</a>
-      <a href="admin.html" class="active">⚙️ Admin Panel</a>
-      <a href="javascript:void(0)" onclick="goToMealManagerPage()">👨‍🍳 Meal Manager</a>
+      <div class="drawer-section-label">General</div>
+      <a href="index.html">
+        <i data-lucide="layout-grid"></i> Rooms & Beds
+      </a>
+      <a href="meal.html">
+        <i data-lucide="utensils"></i> Dining & Meals
+      </a>
+      <a href="meal-cost.html">
+        <i data-lucide="receipt"></i> Bazar Expenses
+      </a>
+      <a href="meal-graph.html">
+        <i data-lucide="line-chart"></i> Meal Analytics
+      </a>
+
+      <div class="drawer-section-label">Management</div>
+      <a href="javascript:void(0)" onclick="goToMealManagerPage()">
+        <i data-lucide="chef-hat"></i> Meal Manager Portal
+      </a>
+      <a href="admin.html" class="active">
+        <i data-lucide="shield"></i> Provost Admin Console
+      </a>
     </nav>
+
+    <div class="drawer-footer">
+      <div>Hall Management System &middot; v2.0</div>
+    </div>
   </aside>
 
-  <header>
+  <!-- Sticky Top Header -->
+  <header class="app-header">
     <div class="header-left">
-      <button class="menu-btn" onclick="openNavDrawer()">☰ Menu</button>
-      <h1>⚙️ Provost Admin Panel</h1>
+      <button class="btn btn-outline btn-icon" onclick="openNavDrawer()" title="Open Navigation Menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-icon" style="background: linear-gradient(135deg, #e11d48 0%, #4f46e5 100%);">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Provost Admin Console</h1>
+          <p>Restricted Authority Access</p>
+        </div>
+      </div>
     </div>
-    <button class="logout-btn" onclick="logoutAdmin()">Lock Admin 🔒</button>
+
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-outline btn-sm">
+        <i data-lucide="arrow-left"></i> View Site
+      </a>
+      <button class="btn btn-danger btn-sm" onclick="logoutAdmin()">
+        <i data-lucide="log-out"></i> Lock Console
+      </button>
+    </div>
   </header>
 
-  <div class="container">
-    <div class="admin-layout">
+  <!-- Main Content -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h2><i data-lucide="sliders" style="color:var(--primary);"></i> Seat Allocation & Hall Fees</h2>
+        <p>Assign boarders to specific rooms and beds, manage vacates, and track hall fees.</p>
+      </div>
+    </div>
 
+    <div class="admin-layout">
+      <!-- Left: Room & Bed Selector Grid -->
       <div>
-        <div class="panel-box">
-          <h2>🏢 Select Floor, Room & Bed</h2>
-          <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-            Provost Access: Hall seat assign/vacate ebong Hall Fee (Joma/Baki) control.
-          </p>
+        <div class="admin-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <h3 style="font-size:16px; display:flex; align-items:center; gap:8px;">
+              <i data-lucide="layers" style="color:var(--primary);"></i> Select Bed Allocation
+            </h3>
+            <span style="font-size:12px; color:var(--text-muted);">Click any bed to inspect or reassign</span>
+          </div>
+
           <div id="admin-floor-room-list"></div>
         </div>
       </div>
 
+      <!-- Right Column: Student Form & Hall Fee Manager -->
       <div>
-        <div class="panel-box">
-          <h2>📝 Student Information Entry</h2>
-          <div id="selected-bed-banner" class="selected-target">
-            Selected: <strong>Floor 2 | Room 201 | Bed-1</strong>
+        <!-- Student Allocation Form Card -->
+        <div class="admin-card">
+          <h3 style="font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="user-plus" style="color:var(--primary);"></i> Bed Occupant Details
+          </h3>
+
+          <div id="selected-bed-banner" style="background:var(--primary-light); border:1px solid var(--primary-border); padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; color:var(--primary-hover); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            Floor 2 &middot; Room 201 &middot; <strong>Bed-1</strong>
           </div>
 
           <form id="admin-student-form" onsubmit="saveBedStudent(event)">
-            <input type="text" id="st-name" placeholder="Student Name" required>
-            <input type="text" id="st-id" placeholder="Student ID" required>
-            <input type="text" id="st-dept" placeholder="Department" required>
-            <input type="text" id="st-phone" placeholder="Phone Number" required>
-            <input type="text" id="st-blood" placeholder="Blood Group (e.g. A+)" required>
-            <input type="text" id="st-district" placeholder="District" required>
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="st-name" class="form-control" placeholder="Enter student's full name" required>
+            </div>
 
-            <label style="font-size: 13px; font-weight: bold; margin-top: 6px; display: block;">
-              Student Photo (Optional):
-            </label>
-            <input type="file" id="st-image-file" accept="image/*">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Student ID</label>
+                <input type="text" id="st-id" class="form-control" placeholder="e.g. 20240105" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department</label>
+                <input type="text" id="st-dept" class="form-control" placeholder="e.g. CSE, EEE" required>
+              </div>
+            </div>
 
-            <button type="submit" class="submit-btn">Save Student to Bed</button>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="st-phone" class="form-control" placeholder="01XXXXXXXXX" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Blood Group</label>
+                <input type="text" id="st-blood" class="form-control" placeholder="e.g. A+, B+, O+" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Home District</label>
+              <input type="text" id="st-district" class="form-control" placeholder="e.g. Dhaka, Chittagong" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Resident Photo (Optional)</label>
+              <input type="file" id="st-image-file" class="form-control" accept="image/*">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:11px; margin-top:8px;">
+              <i data-lucide="check"></i> Save Boarder to Bed
+            </button>
           </form>
 
-          <button type="button" id="vacate-btn" class="btn-vacate" style="display: none;" onclick="vacateSelectedBed()">
-            Remove Student / Vacate Bed
+          <button type="button" id="vacate-btn" class="btn btn-danger" style="width:100%; margin-top:10px; display:none;" onclick="vacateSelectedBed()">
+            <i data-lucide="user-x"></i> Vacate Bed
           </button>
         </div>
 
-        <!-- Hall Fee Section (Provost Only: Student Name - Joma - Baki) -->
-        <div class="panel-box">
-          <h2>🏛️ Hall Fee (Joma - Baki) [Provost Only]</h2>
-          <p style="font-size: 12px; color: #64748b; margin-top: 3px;">
-            Ei hisab shudhumatro Admin (Provost) dekhte parben. <strong>+</strong> button-e click kore joma taka add korun.
-          </p>
-
-          <div class="fee-target-bar">
-            <span style="font-size: 13px;"><strong>Total Hall Fee:</strong> ৳<span id="hall-fee-target-display">3000</span></span>
-            <input type="number" id="hall-fee-target-input" placeholder="New Fee" min="0">
-            <button type="button" class="btn-plus-fee" style="background:#2563eb; font-size:12px; padding:6px 10px;" onclick="updateHallFeeTarget()">Set Fee</button>
+        <!-- Hall Fee Ledger Card -->
+        <div class="admin-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <h3 style="font-size:16px; display:flex; align-items:center; gap:8px;">
+              <i data-lucide="banknote" style="color:var(--success);"></i> Hall Fee Records
+            </h3>
+            <span class="badge" style="background:var(--success-light); color:var(--success-text); border:1px solid var(--success-border);">
+              Target: ৳<span id="hall-fee-target-display">3000</span>
+            </span>
           </div>
 
-          <div id="hall-fee-list"></div>
+          <div style="display:flex; gap:8px; margin-bottom:16px;">
+            <input type="number" id="hall-fee-target-input" class="form-control" placeholder="New target fee" min="0">
+            <button type="button" class="btn btn-outline btn-sm" onclick="updateHallFeeTarget()" style="color:var(--text-main); border-color:var(--border);">
+              Set Target
+            </button>
+          </div>
+
+          <div id="hall-fee-list" style="max-height: 380px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-surface);"></div>
         </div>
       </div>
-
     </div>
-  </div>
+  </main>
 
-  <script src="admin.js"></script>
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div>&copy; 2026 Hall Management System &middot; All Rights Reserved.</div>
+    <div>Live Cloud Synchronized via Supabase Realtime</div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="meal.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>
