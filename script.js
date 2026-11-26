@@ -177,4 +177,19 @@ function searchStudent() {
   });
 }
 
+(async function initPage() {
+  if (typeof syncAllFromSupabase === "function") {
+    await syncAllFromSupabase();
+    students = JSON.parse(localStorage.getItem("hallStudents")) || [];
+    externalBoarders = JSON.parse(localStorage.getItem("hallExternalMealStudents")) || [];
+    mealRecords = JSON.parse(localStorage.getItem("hallMealRecords")) || {};
+    bazarCosts = JSON.parse(localStorage.getItem("hallMealBazarCosts")) || [];
+    stolenMeals = Number(localStorage.getItem("hallStolenMeals")) || 0;
+    dailyMealLog = JSON.parse(localStorage.getItem("hallDailyMealLog")) || {};
+    mealSchedule = JSON.parse(localStorage.getItem("hallMealSchedule")) || mealSchedule;
+    mealManagerInfo = JSON.parse(localStorage.getItem("hallMealManagerInfo")) || null;
+  }
+  renderMealTable(); // ba apnar page-er main render function
+})();
+
 renderRooms();
