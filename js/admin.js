@@ -1,10 +1,13 @@
 if (sessionStorage.getItem('hallAdminAuth') !== 'true') {
-  // Replace native prompt with custom modal
-  showPrompt('Provost Admin Panel-e dhukte Password Din:', '', function(pass) {
+  showPasswordPrompt('Provost Admin Panel-e dhukte Password Din:', function(pass) {
     if (pass === '12345') {
       sessionStorage.setItem('hallAdminAuth', 'true');
-    } else if (pass !== null) {
-      showAlert('Access Denied!', function() { window.location.href = 'index.html'; });
+    } else {
+      if (pass !== null) {
+        showAlert('Access Denied!', function() { window.location.href = 'index.html'; });
+      } else {
+        window.location.href = 'index.html';
+      }
     }
   });
 }

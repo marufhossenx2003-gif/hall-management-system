@@ -64,13 +64,14 @@ function goToAdminPage() {
     window.location.href = 'admin.html';
     return;
   }
-  const password = prompt("Provost Admin Panel-e dhukte Password Din:");
-  if (password === "12345") {
-    sessionStorage.setItem('hallAdminAuth', 'true');
-    window.location.href = 'admin.html';
-  } else if (password !== null) {
-    alert("Wrong Password! Access Denied.");
-  }
+  showPasswordPrompt("Provost Admin Panel-e dhukte Password Din:", function(password) {
+    if (password === "12345") {
+      sessionStorage.setItem('hallAdminAuth', 'true');
+      window.location.href = 'admin.html';
+    } else if (password !== null) {
+      showAlert("Wrong Password! Access Denied.");
+    }
+  });
 }
 
 function goToMealManagerPage() {
@@ -79,13 +80,14 @@ function goToMealManagerPage() {
     window.location.href = 'meal-manager.html';
     return;
   }
-  const password = prompt("Meal Manager Page-e dhukte Password Din:");
-  if (password === "12345") {
-    sessionStorage.setItem('hallMealManagerAuth', 'true');
-    window.location.href = 'meal-manager.html';
-  } else if (password !== null) {
-    alert("Wrong Password! Access Denied.");
-  }
+  showPasswordPrompt("Meal Manager Page-e dhukte Password Din:", function(password) {
+    if (password === "12345") {
+      sessionStorage.setItem('hallMealManagerAuth', 'true');
+      window.location.href = 'meal-manager.html';
+    } else if (password !== null) {
+      showAlert("Wrong Password! Access Denied.");
+    }
+  });
 }
 
 function closeInfoModal() {

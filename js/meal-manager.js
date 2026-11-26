@@ -1,11 +1,15 @@
 if (sessionStorage.getItem('hallMealManagerAuth') !== 'true') {
-  const pass = prompt("Meal Manager Page-e dhukte Password Din:");
-  if (pass === "12345") {
-    sessionStorage.setItem('hallMealManagerAuth', 'true');
-  } else {
-    alert("Access Denied!");
-    window.location.href = 'meal.html';
-  }
+  showPasswordPrompt("Meal Manager Page-e dhukte Password Din:", function(pass) {
+    if (pass === "12345") {
+      sessionStorage.setItem('hallMealManagerAuth', 'true');
+    } else {
+      if (pass !== null) {
+        showAlert("Access Denied!", function() { window.location.href = 'meal.html'; });
+      } else {
+        window.location.href = 'meal.html';
+      }
+    }
+  });
 }
 
 let students = JSON.parse(localStorage.getItem('hallStudents')) || [];
@@ -124,13 +128,14 @@ function goToAdminPage() {
     window.location.href = 'admin.html';
     return;
   }
-  const pass = prompt("Provost Admin Panel-e dhukte Password Din:");
-  if (pass === "12345") {
-    sessionStorage.setItem('hallAdminAuth', 'true');
-    window.location.href = 'admin.html';
-  } else if (pass !== null) {
-    alert("Wrong Password! Access Denied.");
-  }
+  showPasswordPrompt("Provost Admin Panel-e dhukte Password Din:", function(pass) {
+    if (pass === "12345") {
+      sessionStorage.setItem('hallAdminAuth', 'true');
+      window.location.href = 'admin.html';
+    } else if (pass !== null) {
+      showAlert("Wrong Password! Access Denied.");
+    }
+  });
 }
 
 function logoutMealManager() {
@@ -178,7 +183,7 @@ function saveMealManagerStudent() {
     };
   }
   saveMealData();
-  alert("Meal Manager assignment updated successfully.");
+  showAlert("Meal Manager assignment updated successfully.");
   renderManagerTable();
 }
 
@@ -278,14 +283,16 @@ function addExternalMealStudent(event) {
 }
 
 function removeExternalMealStudent(extKey) {
-  if (!confirm("Are you sure you want to remove this external diner?")) return;
-  externalBoarders = externalBoarders.filter(e => e.key !== extKey);
-  delete mealRecords[extKey];
-  saveMealData();
-  if (typeof deleteExternalStudentCloud === "function") {
-    deleteExternalStudentCloud(extKey);
-  }
-  renderManagerTable();
+  showConfirm("Are you sure you want to remove this external diner?", function(confirmed) {
+    if (!confirmed) return;
+    externalBoarders = externalBoarders.filter(e => e.key !== extKey);
+    delete mealRecords[extKey];
+    saveMealData();
+    if (typeof deleteExternalStudentCloud === "function") {
+      deleteExternalStudentCloud(extKey);
+    }
+    renderManagerTable();
+  });
 }
 
 function toggleMealStatus(memberKey) {
@@ -317,64 +324,74 @@ function changeMealCount(memberKey, delta) {
 }
 
 function addDeposit(memberKey) {
-  const amountStr = prompt("Enter deposit amount to add (use negative e.g. -500 to deduct):");
-  if (amountStr === null || amountStr.trim() === '') return;
-  const amount = Number(amountStr);
-  if (isNaN(amount)) {
-    alert("Please enter a valid amount.");
-    return;
-  }
-  const rec = ensureMealRecord(memberKey);
-  rec.deposit = (Number(rec.deposit) || 0) + amount;
-  saveMealData();
-  if (typeof saveMealRecordCloud === "function") {
-    saveMealRecordCloud(memberKey, rec);
-  }
-  renderManagerTable();
+  showPrompt("Enter deposit amount to add (use negative e.g. -500 to deduct):", "", function(amountStr) {
+    if (amountStr === null || amountStr.trim() === '') return;
+    const amount = Number(amountStr);
+    if (isNaN(amount)) {
+      showAlert("Please enter a valid amount.");
+      return;
+    }
+    const rec = ensureMealRecord(memberKey);
+    rec.deposit = (Number(rec.deposit) || 0) + amount;
+    saveMealData();
+    if (typeof saveMealRecordCloud === "function") {
+      saveMealRecordCloud(memberKey, rec);
+    }
+    renderManagerTable();
+  });
 }
 
 function resetMeals(memberKey) {
-  if (!confirm("Reset meal count for this student to 0?")) return;
-  const rec = ensureMealRecord(memberKey);
-  const prev = rec.meals;
-  rec.meals = 0;
-  if (prev > 0) {
-    addToDailyLog(todayISO(), -prev);
-    if (typeof saveDailyMealLogCloud === "function") {
-      saveDailyMealLogCloud(todayISO(), dailyMealLog[todayISO()]);
+  showConfirm("Reset meal count for this student to 0?", function(confirmed) {
+    if (!confirmed) return;
+    const rec = ensureMealRecord(memberKey);
+    const prev = rec.meals;
+    rec.meals = 0;
+    if (prev > 0) {
+      addToDailyLog(todayISO(), -prev);
+      if (typeof saveDailyMealLogCloud === "function") {
+        saveDailyMealLogCloud(todayISO(), dailyMealLog[todayISO()]);
+      }
     }
-  }
-  saveMealData();
-  if (typeof saveMealRecordCloud === "function") {
-    saveMealRecordCloud(memberKey, rec);
-  }
-  renderManagerTable();
+    saveMealData();
+    if (typeof saveMealRecordCloud === "function") {
+      saveMealRecordCloud(memberKey, rec);
+    }
+    renderManagerTable();
+  });
 }
 
 function addAllActiveMeals() {
+  function performAdd() {
+    const allMembers = getAllMealMembers();
+    let addedCount = 0;
+    allMembers.forEach(m => {
+      const rec = ensureMealRecord(m.key, m.legacyId);
+      if (rec.status === 'ON') {
+        rec.meals += 1;
+        addedCount += 1;
+      }
+    });
+    if (addedCount > 0) {
+      addToDailyLog(todayISO(), addedCount);
+      if (typeof saveDailyMealLogCloud === "function") {
+        saveDailyMealLogCloud(todayISO(), dailyMealLog[todayISO()]);
+      }
+    }
+    saveMealData();
+    if (typeof saveAllMealRecordsCloud === "function") {
+      saveAllMealRecordsCloud(mealRecords);
+    }
+    renderManagerTable();
+  }
+
   if (!mealSchedule.isOpen) {
-    if (!confirm("Dining is currently marked as closed. Do you still want to add +1 meal for all ON boarders?")) return;
+    showConfirm("Dining is currently marked as closed. Do you still want to add +1 meal for all ON boarders?", function(confirmed) {
+      if (confirmed) performAdd();
+    });
+  } else {
+    performAdd();
   }
-  const allMembers = getAllMealMembers();
-  let addedCount = 0;
-  allMembers.forEach(m => {
-    const rec = ensureMealRecord(m.key, m.legacyId);
-    if (rec.status === 'ON') {
-      rec.meals += 1;
-      addedCount += 1;
-    }
-  });
-  if (addedCount > 0) {
-    addToDailyLog(todayISO(), addedCount);
-    if (typeof saveDailyMealLogCloud === "function") {
-      saveDailyMealLogCloud(todayISO(), dailyMealLog[todayISO()]);
-    }
-  }
-  saveMealData();
-  if (typeof saveAllMealRecordsCloud === "function") {
-    saveAllMealRecordsCloud(mealRecords);
-  }
-  renderManagerTable();
 }
 
 function renderManagerTable() {
@@ -504,14 +521,16 @@ function addBazarCost(event) {
 }
 
 function deleteBazarCost(costId) {
-  if (!confirm("Are you sure you want to delete this bazar expenditure entry?")) return;
-  bazarCosts = bazarCosts.filter(c => c.id !== costId);
-  localStorage.setItem('hallMealBazarCosts', JSON.stringify(bazarCosts));
-  if (typeof deleteBazarCostCloud === "function") {
-    deleteBazarCostCloud(costId);
-  }
-  renderManagerBazar();
-  renderManagerTable();
+  showConfirm("Are you sure you want to delete this bazar expenditure entry?", function(confirmed) {
+    if (!confirmed) return;
+    bazarCosts = bazarCosts.filter(c => c.id !== costId);
+    localStorage.setItem('hallMealBazarCosts', JSON.stringify(bazarCosts));
+    if (typeof deleteBazarCostCloud === "function") {
+      deleteBazarCostCloud(costId);
+    }
+    renderManagerBazar();
+    renderManagerTable();
+  });
 }
 
 function renderManagerBazar() {
