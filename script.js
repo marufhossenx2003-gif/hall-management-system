@@ -27,9 +27,8 @@ const hallRoomsConfig = [
   { room: 402, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
   { room: 403, floor: 4, beds: ['Bed-1', 'Bed-2'] },
   { room: 404, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
-  { room: 405, floor: 4, beds: ['Bed-1'] },
-  { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] },
-  { room: 407, floor: 4, beds: ['Bed-1'] }
+  { room: 405, floor: 4, beds: ['Bed-1', 'Bed-2'] },
+  { room: 406, floor: 4, beds: ['Bed-1', 'Bed-2', 'Bed-3'] }
 ];
 
 function openNavDrawer() {
