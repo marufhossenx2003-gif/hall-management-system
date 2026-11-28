@@ -1,0 +1,4 @@
+supabase/
+.github/
+.env
+.env.*

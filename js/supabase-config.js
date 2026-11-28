@@ -152,7 +152,11 @@ async function saveHallStudentCloud(st) {
     bed: st.bed,
     image_url: st.image || null
   });
-  if (error) console.error("saveHallStudentCloud error:", error);
+  if (error) {
+    console.error("saveHallStudentCloud error:", error);
+    return false;
+  }
+  return true;
 }
 
 async function deleteHallStudentCloud(st) {

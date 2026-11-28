@@ -132,7 +132,42 @@ function selectBed(floor, room, bed) {
   renderAdminRooms();
 }
 
-function saveBedStudent(event) {
+function compressImageFile(file, maxSize = 300, quality = 0.72) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = function() {
+        resolve(e.target.result);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveBedStudent(event) {
   event.preventDefault();
 
   const fileInput = document.getElementById('st-image-file');
@@ -140,24 +175,15 @@ function saveBedStudent(event) {
   const fallbackImage = existingImageData || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
 
   if (file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      persistStudent(e.target.result);
-    };
-    reader.readAsDataURL(file);
+    const compressed = await compressImageFile(file);
+    await persistStudent(compressed);
   } else {
-    persistStudent(fallbackImage);
+    await persistStudent(fallbackImage);
   }
 }
 
-function persistStudent(imageData) {
+async function persistStudent(imageData) {
   const existing = findStudentAtBed(selectedTarget.room, selectedTarget.bed);
-  if (existing) {
-    if (typeof deleteHallStudentCloud === "function") {
-      deleteHallStudentCloud(existing);
-    }
-    delete hallFeeRecords[getSeatKey(existing)];
-  }
 
   const newStudent = {
     name: document.getElementById('st-name').value.trim(),
@@ -172,24 +198,42 @@ function persistStudent(imageData) {
     image: imageData
   };
 
+  const seatKey = getSeatKey(newStudent);
+
+  if (existing && getSeatKey(existing) !== seatKey) {
+    if (typeof deleteHallStudentCloud === "function") {
+      await deleteHallStudentCloud(existing);
+    }
+    delete hallFeeRecords[getSeatKey(existing)];
+  }
+
   students = students.filter(
     s => !(String(s.room) === String(selectedTarget.room) && String(s.bed).toLowerCase().trim() === selectedTarget.bed.toLowerCase().trim())
   );
 
   students.push(newStudent);
-  localStorage.setItem('hallStudents', JSON.stringify(students));
+  try {
+    localStorage.setItem('hallStudents', JSON.stringify(students));
+  } catch (err) {
+    console.error('localStorage quota error:', err);
+    showAlert('Browser storage is full. Please use a smaller image or clear old data.');
+    return;
+  }
 
-  const seatKey = getSeatKey(newStudent);
   if (typeof hallFeeRecords[seatKey] !== 'number') {
     hallFeeRecords[seatKey] = 0;
   }
-  localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+  try {
+    localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
+  } catch (err) {
+    console.error('localStorage fee quota error:', err);
+  }
 
   if (typeof saveHallStudentCloud === "function") {
-    saveHallStudentCloud(newStudent);
+    await saveHallStudentCloud(newStudent);
   }
   if (typeof saveHallFeeCloud === "function") {
-    saveHallFeeCloud(seatKey, hallFeeRecords[seatKey]);
+    await saveHallFeeCloud(seatKey, hallFeeRecords[seatKey]);
   }
 
   showAlert(`Boarder successfully assigned to Floor ${selectedTarget.floor}, Room ${selectedTarget.room}, ${selectedTarget.bed}.`, function(){
@@ -202,12 +246,12 @@ function persistStudent(imageData) {
 }
 
 function vacateSelectedBed() {
-  showConfirm(`Are you sure you want to vacate Room ${selectedTarget.room}, ${selectedTarget.bed}?`, function(confirmed) {
+  showConfirm(`Are you sure you want to vacate Room ${selectedTarget.room}, ${selectedTarget.bed}?`, async function(confirmed) {
     if (!confirmed) return;
     const existing = findStudentAtBed(selectedTarget.room, selectedTarget.bed);
     if (existing) {
       if (typeof deleteHallStudentCloud === "function") {
-        deleteHallStudentCloud(existing);
+        await deleteHallStudentCloud(existing);
       }
       delete hallFeeRecords[getSeatKey(existing)];
       localStorage.setItem('hallFeeRecords', JSON.stringify(hallFeeRecords));
